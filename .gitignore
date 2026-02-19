@@ -1,0 +1,10 @@
+# 변환된 대화 (개인 데이터)
+40-conversations/*
+!40-conversations/.gitkeep
+
+# 리포트 (개인 데이터)
+90-exports/*
+!90-exports/.gitkeep
+
+# OMC 상태
+.omc/
