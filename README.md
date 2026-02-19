@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="00-system/logo.jpeg" alt="바선생" width="300">
+</p>
+
 # 바선생 (Vibe Sunsang)
 
 바이브코더를 위한 AI 멘토 에이전트.
