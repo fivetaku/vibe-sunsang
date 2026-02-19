@@ -16,26 +16,24 @@ Claude Code와 나눈 대화를 돌아보고, **더 잘 요청하는 법**을 �
 
 ## 설치 방법
 
-### 1. 이 저장소를 다운로드합니다
+### 방법 A: Claude Code에게 시키기 (추천)
+
+Claude Code가 이미 설치되어 있다면, 아무 프로젝트에서 이렇게 말하세요:
+
+> https://github.com/fivetaku/vibe-sunsang 이 저장소를 내 홈 디렉토리에 클론하고, 폴더로 이동해서 /onboard 실행해줘
+
+Claude Code가 알아서 다운로드, 설정, 초기 변환까지 해줍니다.
+
+### 방법 B: 직접 설치
 
 ```bash
-git clone https://github.com/fivetaku/vibe-sunsang
-```
-
-### 2. 이 폴더에서 Claude Code를 실행합니다
-
-```bash
+git clone https://github.com/fivetaku/vibe-sunsang.git
 cd vibe-sunsang
 claude
-```
-
-### 3. 초기 설정을 시작합니다
-
-```
 /onboard
 ```
 
-끝! 온보딩이 프로젝트 연결, 이름 지정, 첫 변환을 모두 안내합니다.
+온보딩이 프로젝트 연결, 이름 지정, 첫 변환을 모두 안내합니다.
 
 ---
 
@@ -96,14 +94,6 @@ vibe-sunsang/
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
 - Python 3.8+
-
----
-
-## Claude Code에게 설치 요청하기
-
-이미 Claude Code를 사용 중이라면, 아무 프로젝트에서 이렇게 말해보세요:
-
-> "이 저장소의 URL 이 저장소를 내 홈 디렉토리에 클론하고, 폴더로 이동해서 /onboard 실행해줘"
 
 ---
 
