@@ -1,6 +1,6 @@
 # Growth - 성장 리포트 생성 스킬
 
-> AI 코딩 세션 데이터를 분석하여 성장 리포트를 자동 생성 (Subagent 위임)
+> AI 활용 세션 데이터를 분석하여 성장 리포트를 자동 생성 (Subagent 위임, 유형별 맞춤)
 
 ## Trigger Conditions
 
@@ -34,16 +34,15 @@
 
 "특정 프로젝트" 선택 시 → `40-conversations/INDEX.md`에서 프로젝트 목록을 보여주고 선택하게 합니다.
 
-**범위가 요청에 포함된 경우 매핑:**
+### Step 2: 워크스페이스 유형 확인
 
-| 키워드 | 범위 |
-|--------|------|
-| 프로젝트명 | 해당 프로젝트만 |
-| "월간", "이번 달" | 최근 1달 |
-| "분기" | 최근 3달 |
-| "전체" | 모든 데이터 |
+`10-scripts/workspace_types.json`을 읽어 분석 대상 프로젝트의 유형을 확인합니다.
 
-### Step 2: 변환 확인
+- 특정 프로젝트 분석 → 해당 프로젝트의 유형 사용
+- 기간 기반 분석 → 포함된 프로젝트들의 유형 목록 수집
+- 유형이 등록되지 않은 프로젝트 → `default_type` (builder) 사용
+
+### Step 3: 변환 확인
 
 서브에이전트에 위임하기 전, 최신 데이터가 있는지 확인합니다:
 
@@ -53,7 +52,7 @@
    python3 10-scripts/convert_sessions.py
    ```
 
-### Step 3: Subagent 위임
+### Step 4: Subagent 위임
 
 사용자에게 진행 상황을 알린 후, `growth-analyst` 에이전트를 spawn합니다:
 
@@ -63,15 +62,21 @@
 ```
 Task(
   subagent_type="growth-analyst",
-  prompt="성장 리포트를 생성해주세요. 범위: [파악한 범위].
+  prompt="성장 리포트를 생성해주세요.
+         범위: [파악한 범위].
+         워크스페이스 유형: [workspace_types.json에서 파악한 유형 정보].
+         유형별 지식 베이스 경로: 20-knowledge-base/{type}/.
+         공통 지식 베이스: 20-knowledge-base/common/.
          40-conversations/ 디렉토리에서 세션 파일을 읽고,
-         20-knowledge-base/의 기준에 따라 분석한 후,
+         해당 유형의 지식 베이스 기준에 따라 분석한 후,
          90-exports/growth-report-YYYY-MM-DD.md로 저장해주세요.",
   description="성장 리포트 생성"
 )
 ```
 
-### Step 4: 결과 전달
+**중요**: 유형 정보를 반드시 서브에이전트에 전달합니다.
+
+### Step 5: 결과 전달
 
 서브에이전트가 반환한 결과를 사용자에게 전달합니다:
 - 저장된 리포트 파일 경로
@@ -90,9 +95,11 @@ Task(
 | 변환 스크립트 실패 | "대화 파일 변환에 문제가 생겼어요. 프로젝트 폴더(`~/.claude/projects/`)가 있는지 확인해주세요." |
 | 서브에이전트 실패 | "분석 중 문제가 발생했어요. 다시 한번 시도해볼까요?" |
 | INDEX.md 없음 | "인덱스 파일이 없어요. `/retro`로 먼저 대화를 변환해주세요." |
+| 유형 정보 없음 | "워크스페이스 유형이 설정되지 않았어요. `/onboard`를 먼저 실행해주세요." |
 
 ## 참조 경로
 
 - **대화 로그**: `40-conversations/`
-- **지식 베이스**: `20-knowledge-base/`
+- **지식 베이스**: `20-knowledge-base/` (common/ + {type}/)
+- **유형 설정**: `10-scripts/workspace_types.json`
 - **결과 저장**: `90-exports/`

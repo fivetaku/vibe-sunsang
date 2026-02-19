@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "types": {
+    "builder": "코딩/개발 (바이브코딩 포함)",
+    "explorer": "리서치/Q&A/스터디/학습",
+    "designer": "기획/아이디에이션/콘텐츠",
+    "operator": "업무 자동화/데이터 처리"
+  },
+  "workspaces": {},
+  "default_type": "builder"
+}

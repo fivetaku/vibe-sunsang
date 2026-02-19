@@ -1,5 +1,5 @@
 ---
-description: "바선생 초기 설정 - 프로젝트 연결 및 첫 변환"
+description: "바선생 초기 설정 - 프로젝트 연결, 유형 분류, 첫 변환"
 ---
 
 ## 바선생 온보딩
@@ -19,7 +19,7 @@ $ARGUMENTS
 매주 한 번 여기서 이번 주 대화를 리뷰하면:
 - 내가 어떤 실수를 반복하고 있는지
 - AI에게 어떻게 요청하면 더 효과적인지
-- 어떤 개발 개념을 모르고 넘어갔는지
+- 어떤 개념을 모르고 넘어갔는지
 
 를 발견할 수 있습니다.
 
@@ -63,16 +63,62 @@ ls ~/.claude/projects/
 - 세션이 5개 미만인 프로젝트는 자동으로 건너뜁니다 (사용자에게 알림)
 - "건너뛰기"를 선택한 프로젝트는 매핑에서 제외
 
-결과를 `10-scripts/project_names.json`에 저장합니다:
+결과를 `10-scripts/project_names.json`에 저장합니다.
+
+### Step 4: 워크스페이스 유형 분류
+
+**각 프로젝트의 CLAUDE.md 또는 README.md를 읽어서 유형을 추론합니다.**
+
+분류 흐름:
+1. 프로젝트 경로에서 `CLAUDE.md` 또는 `README.md`를 찾아 읽기
+2. 내용을 기반으로 유형을 추론
+3. 사용자에게 추론 결과를 보여주고 확인받기
+
+**유형 분류 기준:**
+
+| 유형 | 키워드/패턴 | 설명 |
+|------|------------|------|
+| **Builder** (구현자) | build, test, deploy, component, API, 코딩, 개발, 앱 | 코딩/개발 프로젝트 |
+| **Explorer** (탐험자) | research, study, analyze, 리서치, 학습, 스터디, Q&A, 질문 | 리서치/Q&A/학습 |
+| **Designer** (기획자) | plan, design, ideation, 기획, 아이디어, 콘텐츠, 글쓰기 | 기획/아이디에이션 |
+| **Operator** (운영자) | automate, workflow, schedule, 자동화, 연동, 스크립트, MCP | 업무 자동화 |
+
+**CLAUDE.md/README를 찾을 수 없는 경우:**
+- 해당 프로젝트의 파일 구조를 간단히 확인 (`.py`, `.js` 파일이 많으면 Builder 등)
+- 추론이 어려우면 사용자에게 직접 질문
+
+**사용자 확인 (AskUserQuestion):**
+
+각 프로젝트에 대해:
+> "[프로젝트명]의 CLAUDE.md를 분석해보니 **[유형]** 워크스페이스로 보입니다. 맞나요?"
+> 옵션: "Builder (코딩)", "Explorer (리서치/학습)", "Designer (기획)", "Operator (자동화)"
+
+**규칙:**
+- 프로젝트가 여러 목적이면 주된 목적 1개를 선택 (Hybrid는 나중에 세션 단위로 태깅)
+- 같은 유형이 여러 프로젝트에 반복되면 묶어서 한 번에 확인
+
+결과를 `10-scripts/workspace_types.json`의 `workspaces` 필드에 저장:
 
 ```json
 {
-  "-Users-xxx-my-project": "my-project",
-  "-Users-xxx-another": "another"
+  "workspaces": {
+    "-Users-xxx-my-app": {
+      "type": "builder",
+      "name": "my-app",
+      "detected_from": "CLAUDE.md",
+      "confirmed": true
+    },
+    "-Users-xxx-market-research": {
+      "type": "explorer",
+      "name": "market-research",
+      "detected_from": "README.md",
+      "confirmed": true
+    }
+  }
 }
 ```
 
-### Step 4: 첫 변환 실행
+### Step 5: 첫 변환 실행
 
 ```bash
 python3 10-scripts/convert_sessions.py --force
@@ -82,20 +128,30 @@ python3 10-scripts/convert_sessions.py --force
 - 총 프로젝트 수
 - 총 세션 수
 - 가장 활발한 프로젝트 TOP 3
+- **유형별 분포** (Builder N개, Explorer N개, ...)
 
-### Step 5: 사용법 안내
+### Step 6: 사용법 안내
 
 ---
 
 **설정 완료!**
+
+프로젝트 유형별로 맞춤 분석을 받을 수 있습니다:
+
+| 유형 | 분석 내용 |
+|------|----------|
+| Builder (구현자) | 코딩 요청 품질, 에러 대응, 코드 이해도 |
+| Explorer (탐험자) | 질문 깊이, 출처 검증, 비판적 사고 |
+| Designer (기획자) | 기획 구체성, 구조화, 실현 가능성 |
+| Operator (운영자) | 자동화 품질, 에러 처리, 재사용성 |
 
 사용할 수 있는 기능:
 
 | 명령 | 설명 |
 |------|------|
 | `/retro` | 새 대화 변환 (매주 실행 권장) |
-| `멘토링해줘` | AI 활용 능력 코칭 |
-| `성장 리포트 만들어줘` | 성장 분석 리포트 |
+| `멘토링해줘` | AI 활용 능력 코칭 (유형별 맞춤) |
+| `성장 리포트 만들어줘` | 성장 분석 리포트 (유형별 맞춤) |
 | `[프로젝트명] 분석해줘` | 특정 프로젝트 리뷰 |
 
 **추천 루틴:**
@@ -105,7 +161,7 @@ python3 10-scripts/convert_sessions.py --force
 
 ---
 
-### Step 6: 바로 시작할지 물어보기
+### Step 7: 바로 시작할지 물어보기
 
 AskUserQuestion으로 물어봅니다:
 - "바로 이번 주 리뷰를 시작해볼까요?"
