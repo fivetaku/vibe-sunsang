@@ -253,6 +253,7 @@ vibe-sunsang/
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
 - Python 3.8+
+- **Windows 사용자**: [WSL2](https://learn.microsoft.com/ko-kr/windows/wsl/install) 설치 필요 (Claude Code가 WSL2 위에서 동작합니다. `wsl --install` 한 줄이면 설치 완료)
 
 ---
 
