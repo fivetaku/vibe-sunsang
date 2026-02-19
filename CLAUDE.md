@@ -1,6 +1,6 @@
 # 바선생 (Vibe Sunsang)
 
-바이브코더를 위한 AI 협업 성장 워크스페이스. Claude Code 대화 기록을 분석하고 회고하여, **더 나은 AI 협업자**로 레벨업하세요.
+바이브코더를 위한 AI 멘토 에이전트. Claude Code 대화 기록을 분석하고 회고하여, **더 나은 AI 협업자**로 레벨업하세요.
 
 ---
 
@@ -33,7 +33,7 @@
 
 ```
 vibe-sunsang/
-├── CLAUDE.md                    ← 이 파일 (워크스페이스 가이드)
+├── CLAUDE.md                    ← 이 파일 (에이전트 가이드)
 ├── .claude/                     ← Claude Code 설정
 │   ├── commands/retro.md        ← /retro 커맨드
 │   ├── skills/mentor/SKILL.md   ← 멘토링 스킬

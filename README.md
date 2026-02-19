@@ -1,6 +1,6 @@
 # 바선생 (Vibe Sunsang)
 
-바이브코더를 위한 AI 협업 성장 워크스페이스.
+바이브코더를 위한 AI 멘토 에이전트.
 
 Claude Code와 나눈 **모든 대화를 자동으로 수집, 변환, 분석**하여 더 나은 AI 협업자로 성장할 수 있게 도와줍니다.
 
@@ -229,7 +229,7 @@ JSONL 로그를 Markdown으로 변환하고, 분석 방법을 안내합니다.
 
 ```
 vibe-sunsang/
-├── CLAUDE.md                      ← 워크스페이스 동작 규칙
+├── CLAUDE.md                      ← 에이전트 동작 규칙
 ├── .claude/
 │   ├── commands/
 │   │   ├── onboard.md             ← /onboard (초기 설정 + 첫 변환)

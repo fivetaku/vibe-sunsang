@@ -392,7 +392,7 @@ def generate_index(output_base: Path):
         )
 
     lines.append("\n---\n")
-    lines.append("이 워크스페이스에서 Claude Code를 실행하면 과거 대화를 분석하고 회고할 수 있습니다.")
+    lines.append("바선생과 함께 과거 대화를 분석하고 회고할 수 있습니다.")
 
     index_path = output_base / "INDEX.md"
     index_path.write_text("\n".join(lines), encoding="utf-8")
