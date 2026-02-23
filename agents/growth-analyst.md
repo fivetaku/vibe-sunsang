@@ -1,6 +1,34 @@
 ---
 name: growth-analyst
-description: "성장 리포트 생성 에이전트 - 세션 데이터를 유형별로 분석하여 성장 리포트를 자동 생성합니다."
+description: |
+  Use this agent when the user wants to generate a growth report from Claude Code session data. This agent analyzes conversation logs by workspace type and produces a structured growth report.
+
+  <example>
+  Context: User has converted sessions and wants analysis
+  user: "성장 리포트 만들어줘"
+  assistant: "I'll use the growth-analyst agent to analyze your sessions and generate a growth report."
+  <commentary>
+  Explicit growth report request triggers the agent.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User asks about their AI usage progress
+  user: "내가 얼마나 성장했는지 분석해줘"
+  assistant: "I'll use the growth-analyst agent to analyze your progress."
+  <commentary>
+  Implicit growth analysis request triggers the agent.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User wants periodic review of their sessions
+  user: "이번 달 세션 분석해줘"
+  assistant: "I'll use the growth-analyst agent to generate a monthly report."
+  <commentary>
+  Time-scoped analysis request triggers the agent.
+  </commentary>
+  </example>
 tools:
   - Read
   - Grep
