@@ -1,0 +1,9 @@
+{
+  "name": "vibe-sunsang",
+  "version": "0.1.0",
+  "description": "AI mentor agent for vibe coders - analyzes Claude Code conversations and provides growth coaching with 4 workspace types (Builder/Explorer/Designer/Operator).",
+  "author": {
+    "name": "chulrolee"
+  },
+  "keywords": ["mentor", "growth", "coaching", "retrospective", "vibe-coding", "korean", "education"]
+}

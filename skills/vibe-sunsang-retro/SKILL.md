@@ -1,10 +1,19 @@
 ---
-description: "바선생 - 대화 로그 변환 및 분석 가이드"
+name: vibe-sunsang-retro
+description: 바선생 대화 변환 — Claude Code 대화 로그를 Markdown으로 변환하고 분석 가이드를 제공합니다. "변환", "retro", "대화 변환", "로그 변환", "회고", "이번 주 대화" 같은 요청에 사용됩니다.
 ---
 
 ## 실행: 대화 로그 변환
 
 인자: $ARGUMENTS
+
+### Step 0: 사전 확인
+
+`~/vibe-sunsang/config/project_names.json` 파일이 있는지 확인합니다.
+
+없으면:
+> "아직 바선생 초기 설정이 되지 않았어요. `/vibe-sunsang 시작`을 먼저 실행해주세요."
+> → 여기서 종료
 
 ### Step 1: 변환 스크립트 실행
 
@@ -19,10 +28,10 @@ description: "바선생 - 대화 로그 변환 및 분석 가이드"
 
 ```bash
 # 기본: 증분 변환
-python3 10-scripts/convert_sessions.py
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file ~/vibe-sunsang/config/project_names.json --output-dir ~/vibe-sunsang/conversations
 
 # --force: 인자에 "전체", "force", "다시" 포함 시
-# python3 10-scripts/convert_sessions.py --force
+# python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --force --names-file ~/vibe-sunsang/config/project_names.json --output-dir ~/vibe-sunsang/conversations
 
 # --verbose: 인자에 "상세", "verbose" 포함 시 추가
 # --project: 인자에 프로젝트명 포함 시 추가
@@ -43,9 +52,7 @@ python3 10-scripts/convert_sessions.py
 
 변환 완료 후 인덱스를 읽어 현황을 보여줍니다:
 
-```bash
-cat 40-conversations/INDEX.md
-```
+`~/vibe-sunsang/conversations/INDEX.md`를 Read 도구로 읽습니다.
 
 변환 결과를 요약합니다:
 - 총 프로젝트 수
@@ -61,10 +68,10 @@ cat 40-conversations/INDEX.md
 1. **프로젝트 패턴 분석**
    > "[프로젝트명] 세션들을 분석해줘. 주요 작업 유형, 반복 에러, 도구 활용 패턴을 정리해줘."
 
-2. **성장 트래커** → `/growth` 사용
+2. **성장 트래커** → "성장 리포트 만들어줘" 또는 `/vibe-sunsang 성장`
    > 성장 리포트를 생성합니다.
 
-3. **멘토링 세션** → `/mentor` 사용
+3. **멘토링 세션** → "멘토링해줘" 또는 `/vibe-sunsang 멘토링`
    > AI 활용 능력을 코칭 받습니다.
 
 4. **버그/실수 패턴**
@@ -76,15 +83,10 @@ cat 40-conversations/INDEX.md
 6. **비용 분석**
    > "프로젝트별 토큰 사용량과 모델 분포를 정리해줘."
 
-### 프로젝트 참조
-
-`10-scripts/project_names.json`에 등록된 프로젝트 이름을 사용합니다.
-프로젝트 목록은 `40-conversations/INDEX.md`에서 확인할 수 있습니다.
-
 ### 데이터 경로
 
 - **원본**: `~/.claude/projects/{프로젝트}/세션ID.jsonl`
-- **변환 결과**: `40-conversations/{프로젝트명}/`
-- **인덱스**: `40-conversations/INDEX.md`
-- **지식 베이스**: `20-knowledge-base/`
-- **리포트 저장**: `90-exports/`
+- **변환 결과**: `~/vibe-sunsang/conversations/{프로젝트명}/`
+- **인덱스**: `~/vibe-sunsang/conversations/INDEX.md`
+- **설정**: `~/vibe-sunsang/config/`
+- **리포트 저장**: `~/vibe-sunsang/exports/`

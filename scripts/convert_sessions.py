@@ -13,24 +13,8 @@ from datetime import datetime
 from pathlib import Path
 
 CLAUDE_PROJECTS_DIR = Path.home() / ".claude" / "projects"
-DEFAULT_OUTPUT_DIR = Path(__file__).parent.parent / "40-conversations"
-
-# PROJECT_NAMES: loaded from scripts/project_names.json, fallback to auto-generation
-_PROJECT_NAMES_FILE = Path(__file__).parent / "project_names.json"
-
-
-def _load_project_names() -> dict:
-    """Load project name mappings from JSON config file."""
-    if _PROJECT_NAMES_FILE.exists():
-        try:
-            with open(_PROJECT_NAMES_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, OSError):
-            pass
-    return {}
-
-
-PROJECT_NAMES = _load_project_names()
+DEFAULT_OUTPUT_DIR = Path.home() / "vibe-sunsang" / "conversations"
+DEFAULT_NAMES_FILE = Path.home() / "vibe-sunsang" / "config" / "project_names.json"
 
 # Tool formatters: maps tool name -> lambda(input_dict) -> summary string
 TOOL_FORMATTERS = {
@@ -46,10 +30,21 @@ TOOL_FORMATTERS = {
 }
 
 
-def get_project_name(dir_name: str) -> str:
+def load_project_names(names_file: Path) -> dict:
+    """Load project name mappings from JSON config file."""
+    if names_file.exists():
+        try:
+            with open(names_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
+def get_project_name(dir_name: str, project_names: dict) -> str:
     """프로젝트 디렉토리명을 사람이 읽기 좋은 이름으로 변환"""
-    if dir_name in PROJECT_NAMES:
-        return PROJECT_NAMES[dir_name]
+    if dir_name in project_names:
+        return project_names[dir_name]
     # 매핑에 없으면 자동 정리
     # -Users-{username}-{project} 패턴에서 프로젝트명만 추출
     import re
@@ -291,6 +286,7 @@ def _find_existing_output(output_dir: Path, short_id: str) -> Path | None:
 def convert_project(
     project_dir: str,
     output_base: Path,
+    project_names: dict,
     project_name: str = None,
     force: bool = False,
     verbose: bool = False,
@@ -302,7 +298,7 @@ def convert_project(
         return 0
 
     if project_name is None:
-        project_name = get_project_name(project_dir)
+        project_name = get_project_name(project_dir, project_names)
 
     output_dir = output_base / project_name
     # Delay mkdir until first successful conversion
@@ -426,6 +422,12 @@ def parse_args() -> argparse.Namespace:
         help="Custom output directory path",
     )
     parser.add_argument(
+        "--names-file",
+        type=Path,
+        default=None,
+        help="Path to project_names.json (default: ~/vibe-sunsang/config/project_names.json)",
+    )
+    parser.add_argument(
         "--project",
         type=str,
         default=None,
@@ -438,6 +440,10 @@ def main():
     args = parse_args()
 
     output_dir = args.output_dir if args.output_dir else DEFAULT_OUTPUT_DIR
+    names_file = args.names_file if args.names_file else DEFAULT_NAMES_FILE
+
+    # Load project names at runtime (not module level)
+    project_names = load_project_names(names_file)
 
     # Build target list: --project flag, positional args, or all projects
     if args.project:
@@ -451,6 +457,7 @@ def main():
     print(f"=== Claude Code 세션 → Markdown 변환 ===")
     print(f"소스: {CLAUDE_PROJECTS_DIR}")
     print(f"출력: {output_dir}")
+    print(f"이름 매핑: {names_file}")
     print(f"대상: {len(targets)}개 프로젝트")
     if args.force:
         print(f"모드: --force (전체 재변환)")
@@ -463,6 +470,7 @@ def main():
         total += convert_project(
             target,
             output_dir,
+            project_names,
             force=args.force,
             verbose=args.verbose,
         )

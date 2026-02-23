@@ -1,25 +1,18 @@
+---
+name: vibe-sunsang-mentor
+description: 바선생 멘토링 — AI 활용 능력을 코칭합니다. 요청 품질, 안티패턴, 개념 학습, 종합 코칭 4가지 모드를 지원합니다. "멘토링해줘", "코칭해줘", "요청 코칭해줘", "뭘 잘못하고 있는지", "어떻게 요청하면 좋을지", "mentor", "coach" 같은 요청에 사용됩니다.
+---
+
 # Mentor - AI 활용 멘토 스킬
 
 > 비개발자를 위한 AI 활용 멘토링 & 코칭 세션 (워크스페이스 유형별 맞춤)
 
-## Trigger Conditions
-
-```
-- "/mentor"
-- "/coach"
-- "멘토링해줘"
-- "코칭해줘"
-- "요청 코칭해줘"
-- "뭘 잘못하고 있는지"
-- "어떻게 요청하면 좋을지"
-```
-
 ## 참조 경로
 
-**대화 로그**: `40-conversations/`
-**지식 베이스**: `20-knowledge-base/`
-**유형 설정**: `10-scripts/workspace_types.json`
-**결과 저장**: `90-exports/`
+**대화 로그**: `~/vibe-sunsang/conversations/`
+**지식 베이스**: `${CLAUDE_PLUGIN_ROOT}/skills/vibe-sunsang-knowledge/references/`
+**유형 설정**: `~/vibe-sunsang/config/workspace_types.json`
+**결과 저장**: `~/vibe-sunsang/exports/`
 
 ## 실행 흐름
 
@@ -27,30 +20,36 @@
 
 **모든 분석 전에 먼저 유형을 확인합니다:**
 
-1. `10-scripts/workspace_types.json`을 읽어 프로젝트별 유형 확인
+1. `~/vibe-sunsang/config/workspace_types.json`을 읽어 프로젝트별 유형 확인
 2. 분석 대상 프로젝트의 유형을 파악
 3. 유형이 없으면 사용자에게 AskUserQuestion:
    > "이 프로젝트는 어떤 용도인가요?"
    > 옵션: "Builder (코딩)", "Explorer (리서치/학습)", "Designer (기획)", "Operator (자동화)"
 
+**파일 자체가 없으면:**
+> "아직 바선생 초기 설정이 되지 않았어요. `/vibe-sunsang 시작`을 먼저 실행해주세요."
+> → 여기서 종료
+
 **유형에 따라 지식 베이스 경로가 결정됩니다:**
 
 | 유형 | 안티패턴 | 개념 | 성장 지표 |
 |------|---------|------|----------|
-| builder | `20-knowledge-base/builder/antipatterns.md` | `builder/concepts.md` | `builder/growth-metrics.md` |
-| explorer | `20-knowledge-base/explorer/antipatterns.md` | `explorer/concepts.md` | `explorer/growth-metrics.md` |
-| designer | `20-knowledge-base/designer/antipatterns.md` | `designer/concepts.md` | `designer/growth-metrics.md` |
-| operator | `20-knowledge-base/operator/antipatterns.md` | `operator/concepts.md` | `operator/growth-metrics.md` |
+| builder | `references/builder/antipatterns.md` | `builder/concepts.md` | `builder/growth-metrics.md` |
+| explorer | `references/explorer/antipatterns.md` | `explorer/concepts.md` | `explorer/growth-metrics.md` |
+| designer | `references/designer/antipatterns.md` | `designer/concepts.md` | `designer/growth-metrics.md` |
+| operator | `references/operator/antipatterns.md` | `operator/concepts.md` | `operator/growth-metrics.md` |
+
+모든 경로의 base: `${CLAUDE_PLUGIN_ROOT}/skills/vibe-sunsang-knowledge/references/`
 
 공통 파일은 항상 함께 참조:
-- `20-knowledge-base/common/prompt-quality.md`
-- `20-knowledge-base/common/mentoring-checklist.md`
+- `common/prompt-quality.md`
+- `common/mentoring-checklist.md`
 
 ### Step 1: 모드 선택
 
 사용자의 의도를 파악하여 모드를 선택합니다.
 
-**기본 동작 (인자 없이 `/mentor`만 입력한 경우):**
+**기본 동작 (인자 없이 실행한 경우):**
 → 모드 D (종합 코칭 세션)을 기본 실행합니다.
 
 | 인자/키워드 | 모드 | 설명 |
@@ -76,7 +75,7 @@
 
 ### Step 3: 세션 데이터 수집
 
-1. `40-conversations/INDEX.md`를 읽어 최신 상태 확인
+1. `~/vibe-sunsang/conversations/INDEX.md`를 읽어 최신 상태 확인
 2. 모드에 따라 적절한 범위의 세션 파일 로딩:
    - 모드 A, B: 최근 3~5개 세션
    - 모드 C: 사용자가 지정한 세션 또는 최근 1개
@@ -136,7 +135,27 @@
 ### Step 6: 저장 (선택)
 
 사용자가 원하면 코칭 결과를 저장합니다:
-- 경로: `90-exports/mentor-YYYY-MM-DD.md`
+- 경로: `~/vibe-sunsang/exports/mentor-YYYY-MM-DD.md`
+
+## 자동 감지 & 개입 규칙
+
+대화 중 다음 신호를 감지하면 자동으로 반응합니다:
+
+**즉시 개입 (Red Flags)**:
+1. 모호한 요청 → "어떤 부분을 어떻게 바꾸고 싶으신가요?"
+2. 같은 실수 반복 → 패턴을 알려주고 개선법 안내
+3. 위험한 작업 → 영향 범위를 먼저 알려주기
+4. AI 결과 무검증 → 결과 확인 습관 안내
+
+**부드럽게 안내 (Yellow Flags)**:
+1. 컨텍스트 부족 → "관련 맥락을 먼저 공유해줄 수 있나요?"
+2. 검증 건너뛰기 → "결과를 먼저 확인해볼까요?"
+3. 과도한 요청 → "단계별로 나눠서 진행할까요?"
+
+**성장 인정 (Green Signals)**:
+1. 구체적 요청 → "좋은 요청입니다!"
+2. 자가 분석 → 맞는지 확인 후 피드백
+3. 대안 질문 → 장단점 비교 제공
 
 ## 대화 스타일
 

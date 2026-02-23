@@ -1,10 +1,26 @@
 ---
-description: "바선생 초기 설정 - 프로젝트 연결, 유형 분류, 첫 변환"
+name: vibe-sunsang-onboard
+description: 바선생 초기 설정 — 프로젝트 연결, 워크스페이스 유형 분류, 첫 변환까지 안내합니다. "바선생 시작", "온보딩", "초기 설정", "처음이에요", "셋업", "setup" 같은 요청에 사용됩니다.
 ---
 
 ## 바선생 온보딩
 
-$ARGUMENTS
+### Step 0: 사용자 데이터 디렉토리 준비
+
+`~/vibe-sunsang/` 디렉토리가 있는지 확인합니다.
+
+**이미 존재하는 경우 (재온보딩):**
+> "이전에 설정한 바선생 데이터가 있습니다. 기존 설정을 유지하면서 새 프로젝트만 추가할까요, 아니면 처음부터 다시 설정할까요?"
+
+AskUserQuestion:
+- "새 프로젝트만 추가" → 기존 config 파일을 읽어 매핑된 프로젝트를 건너뛰고 새 프로젝트만 진행
+- "처음부터 다시" → 기존 config 파일을 백업(`*.bak`) 후 새로 생성
+
+**존재하지 않는 경우:**
+
+```bash
+mkdir -p ~/vibe-sunsang/config ~/vibe-sunsang/conversations ~/vibe-sunsang/exports
+```
 
 ### Step 1: 환영 & 설명
 
@@ -62,8 +78,9 @@ ls ~/.claude/projects/
 - 한 번에 5개까지만 질문합니다 (너무 많으면 피로)
 - 세션이 5개 미만인 프로젝트는 자동으로 건너뜁니다 (사용자에게 알림)
 - "건너뛰기"를 선택한 프로젝트는 매핑에서 제외
+- **재온보딩 시**: 이미 매핑된 프로젝트는 건너뛰고 새 프로젝트만 질문
 
-결과를 `10-scripts/project_names.json`에 저장합니다.
+결과를 `~/vibe-sunsang/config/project_names.json`에 저장합니다.
 
 ### Step 4: 워크스페이스 유형 분류
 
@@ -94,24 +111,26 @@ ls ~/.claude/projects/
 > 옵션: "Builder (코딩)", "Explorer (리서치/학습)", "Designer (기획)", "Operator (자동화)"
 
 **규칙:**
-- 프로젝트가 여러 목적이면 주된 목적 1개를 선택 (Hybrid는 나중에 세션 단위로 태깅)
+- 프로젝트가 여러 목적이면 주된 목적 1개를 선택
 - 같은 유형이 여러 프로젝트에 반복되면 묶어서 한 번에 확인
 
-결과를 `10-scripts/workspace_types.json`의 `workspaces` 필드에 저장:
+결과를 `~/vibe-sunsang/config/workspace_types.json`에 저장:
 
 ```json
 {
+  "schema_version": 1,
+  "type_definitions": {
+    "builder": "코딩/개발",
+    "explorer": "리서치/Q&A/스터디",
+    "designer": "기획/아이디에이션",
+    "operator": "자동화/데이터처리"
+  },
+  "default_type": "builder",
   "workspaces": {
     "-Users-xxx-my-app": {
       "type": "builder",
       "name": "my-app",
       "detected_from": "CLAUDE.md",
-      "confirmed": true
-    },
-    "-Users-xxx-market-research": {
-      "type": "explorer",
-      "name": "market-research",
-      "detected_from": "README.md",
       "confirmed": true
     }
   }
@@ -121,7 +140,7 @@ ls ~/.claude/projects/
 ### Step 5: 첫 변환 실행
 
 ```bash
-python3 10-scripts/convert_sessions.py --force
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --force --names-file ~/vibe-sunsang/config/project_names.json --output-dir ~/vibe-sunsang/conversations
 ```
 
 변환 진행 상황을 보여주고, 완료되면 결과를 요약합니다:
@@ -149,15 +168,14 @@ python3 10-scripts/convert_sessions.py --force
 
 | 명령 | 설명 |
 |------|------|
-| `/retro` | 새 대화 변환 (매주 실행 권장) |
-| `멘토링해줘` | AI 활용 능력 코칭 (유형별 맞춤) |
-| `성장 리포트 만들어줘` | 성장 분석 리포트 (유형별 맞춤) |
-| `[프로젝트명] 분석해줘` | 특정 프로젝트 리뷰 |
+| `/vibe-sunsang 변환` | 새 대화 변환 (매주 실행 권장) |
+| `/vibe-sunsang 멘토링` | AI 활용 능력 코칭 (유형별 맞춤) |
+| `/vibe-sunsang 성장` | 성장 분석 리포트 (유형별 맞춤) |
 
 **추천 루틴:**
-1. 매주 금요일, 이 폴더에서 `claude` 실행
-2. `/retro` 로 이번 주 대화 변환
-3. `멘토링해줘` 로 이번 주 리뷰
+1. 매주 금요일, `/vibe-sunsang 변환` 으로 이번 주 대화 변환
+2. "멘토링해줘" 로 이번 주 리뷰
+3. 행동 계획 실천
 
 ---
 
@@ -168,6 +186,6 @@ AskUserQuestion으로 물어봅니다:
 - 옵션: "멘토링 시작", "성장 리포트 생성", "나중에 할게요"
 
 선택에 따라:
-- "멘토링 시작" → mentor 스킬 실행
-- "성장 리포트 생성" → growth 스킬 실행
+- "멘토링 시작" → vibe-sunsang-mentor 스킬 실행
+- "성장 리포트 생성" → vibe-sunsang-growth 스킬 실행
 - "나중에 할게요" → 종료
