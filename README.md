@@ -40,13 +40,15 @@ Claude Code는 여러분이 나눈 모든 대화를 `~/.claude/projects/`에 JSO
 ### 마켓플레이스에서 설치 (추천)
 
 ```
-/plugin marketplace add https://github.com/fivetaku/gptaku-plugins
+/plugin marketplace add https://github.com/fivetaku/gptaku_plugins.git
 /plugin install vibe-sunsang
 ```
 
+설치 후 Claude Code를 **재시작**하세요.
+
 ### 처음 시작하기
 
-설치 후 아무 프로젝트에서:
+아무 프로젝트에서:
 
 ```
 /vibe-sunsang 시작
