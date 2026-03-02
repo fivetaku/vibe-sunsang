@@ -22,9 +22,23 @@ description: 바선생 멘토링 — AI 활용 능력을 코칭합니다. 요청
 
 1. `~/vibe-sunsang/config/workspace_types.json`을 읽어 프로젝트별 유형 확인
 2. 분석 대상 프로젝트의 유형을 파악
-3. 유형이 없으면 사용자에게 AskUserQuestion:
-   > "이 프로젝트는 어떤 용도인가요?"
-   > 옵션: "Builder (코딩)", "Explorer (리서치/학습)", "Designer (기획)", "Operator (자동화)"
+3. 유형이 없으면 **EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
+
+```json
+{
+  "questions": [{
+    "question": "이 프로젝트는 어떤 용도인가요?",
+    "header": "유형 선택",
+    "options": [
+      {"label": "Builder (코딩)", "description": "코딩/개발 프로젝트", "markdown": "## Builder (구현자)\n\n**핵심**: 코드를 작성하고 앱/서비스를 만드는 프로젝트\n\n**분석 내용**:\n- 코딩 요청 품질\n- 에러 대응 패턴\n- 코드 이해도\n\n**레벨**: Observer → Questioner → Collaborator → Orchestrator → Conductor"},
+      {"label": "Explorer (리서치/학습)", "description": "리서치/Q&A/스터디", "markdown": "## Explorer (탐험자)\n\n**핵심**: 리서치, 질문, 학습 위주의 프로젝트\n\n**분석 내용**:\n- 질문 깊이\n- 출처 검증 습관\n- 비판적 사고\n\n**레벨**: Asker → Verifier → Synthesizer → Analyst → Scholar"},
+      {"label": "Designer (기획)", "description": "기획/아이디에이션", "markdown": "## Designer (기획자)\n\n**핵심**: 기획, 아이디어 정리, 콘텐츠 작성 프로젝트\n\n**분석 내용**:\n- 기획 구체성\n- 구조화 능력\n- 실현 가능성\n\n**레벨**: Dreamer → Shaper → Planner → Strategist → Visionary"},
+      {"label": "Operator (자동화)", "description": "업무 자동화/데이터처리", "markdown": "## Operator (운영자)\n\n**핵심**: 업무 자동화, 스크립트, 데이터 처리 프로젝트\n\n**분석 내용**:\n- 자동화 품질\n- 에러 처리\n- 재사용성\n\n**레벨**: User → Recorder → Scripter → Engineer → Automator"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
 
 **파일 자체가 없으면:**
 > "아직 바선생 초기 설정이 되지 않았어요. `/vibe-sunsang 시작`을 먼저 실행해주세요."

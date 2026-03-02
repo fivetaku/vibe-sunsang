@@ -12,7 +12,23 @@ description: 바선생 초기 설정 — 프로젝트 연결, 워크스페이스
 **이미 존재하는 경우 (재온보딩):**
 > "이전에 설정한 바선생 데이터가 있습니다. 기존 설정을 유지하면서 새 프로젝트만 추가할까요, 아니면 처음부터 다시 설정할까요?"
 
-AskUserQuestion:
+**EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
+
+```json
+{
+  "questions": [{
+    "question": "이전에 설정한 바선생 데이터가 있습니다. 어떻게 할까요?",
+    "header": "재설정",
+    "options": [
+      {"label": "새 프로젝트만 추가", "description": "기존 설정을 유지하면서 새 프로젝트만 추가해요"},
+      {"label": "처음부터 다시", "description": "기존 설정을 백업하고 새로 시작해요"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+선택에 따라:
 - "새 프로젝트만 추가" → 기존 config 파일을 읽어 매핑된 프로젝트를 건너뛰고 새 프로젝트만 진행
 - "처음부터 다시" → 기존 config 파일을 백업(`*.bak`) 후 새로 생성
 
@@ -70,9 +86,24 @@ ls ~/.claude/projects/
 
 각 프로젝트 디렉토리에 대해:
 1. 디렉토리명에서 프로젝트명을 추측합니다 (경로의 마지막 의미 있는 부분 추출)
-2. 사용자에게 AskUserQuestion으로 확인받습니다:
-   - "이 프로젝트(`-Users-xxx-my-project`)의 이름을 뭐라고 할까요?"
-   - 옵션: 자동 추측 이름 + "다른 이름" + "건너뛰기 (분석 안 함)"
+2. **EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다 (프로젝트별로 반복):
+
+```json
+{
+  "questions": [{
+    "question": "이 프로젝트(`-Users-xxx-my-project`)의 이름을 뭐라고 할까요?",
+    "header": "프로젝트명",
+    "options": [
+      {"label": "{추측한 이름}", "description": "디렉토리 경로에서 추측한 이름이에요"},
+      {"label": "다른 이름", "description": "Other에 원하는 이름을 입력해주세요"},
+      {"label": "건너뛰기", "description": "이 프로젝트는 분석하지 않아요"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+> question과 첫 번째 옵션의 label은 각 프로젝트에 맞게 동적 생성한다.
 
 **규칙:**
 - 한 번에 5개까지만 질문합니다 (너무 많으면 피로)
@@ -104,11 +135,25 @@ ls ~/.claude/projects/
 - 해당 프로젝트의 파일 구조를 간단히 확인 (`.py`, `.js` 파일이 많으면 Builder 등)
 - 추론이 어려우면 사용자에게 직접 질문
 
-**사용자 확인 (AskUserQuestion):**
+각 프로젝트에 대해 **EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
 
-각 프로젝트에 대해:
-> "[프로젝트명]의 CLAUDE.md를 분석해보니 **[유형]** 워크스페이스로 보입니다. 맞나요?"
-> 옵션: "Builder (코딩)", "Explorer (리서치/학습)", "Designer (기획)", "Operator (자동화)"
+```json
+{
+  "questions": [{
+    "question": "[프로젝트명]의 CLAUDE.md를 분석해보니 [유형] 워크스페이스로 보입니다. 맞나요?",
+    "header": "유형 확인",
+    "options": [
+      {"label": "Builder (코딩)", "description": "코딩/개발 프로젝트"},
+      {"label": "Explorer (리서치/학습)", "description": "리서치/Q&A/스터디"},
+      {"label": "Designer (기획)", "description": "기획/아이디에이션"},
+      {"label": "Operator (자동화)", "description": "업무 자동화/데이터처리"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+> question은 각 프로젝트의 이름과 추론된 유형으로 동적 생성한다.
 
 **규칙:**
 - 프로젝트가 여러 목적이면 주된 목적 1개를 선택
@@ -181,9 +226,22 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --force --names-file ~
 
 ### Step 7: 바로 시작할지 물어보기
 
-AskUserQuestion으로 물어봅니다:
-- "바로 이번 주 리뷰를 시작해볼까요?"
-- 옵션: "멘토링 시작", "성장 리포트 생성", "나중에 할게요"
+**EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
+
+```json
+{
+  "questions": [{
+    "question": "바로 이번 주 리뷰를 시작해볼까요?",
+    "header": "다음 단계",
+    "options": [
+      {"label": "멘토링 시작", "description": "AI 활용 능력 코칭 세션을 바로 시작해요"},
+      {"label": "성장 리포트 생성", "description": "성장 분석 리포트를 자동 생성해요"},
+      {"label": "나중에 할게요", "description": "여기서 마무리할게요"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
 
 선택에 따라:
 - "멘토링 시작" → vibe-sunsang-mentor 스킬 실행
