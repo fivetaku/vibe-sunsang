@@ -4,7 +4,6 @@ description: "바선생 — AI 활용 성장 멘토 에이전트"
 argument-hint: "[시작|변환|멘토링|성장]"
 allowed-tools:
   - Bash
-  - AskUserQuestion
   - Read
   - Write
   - Glob
