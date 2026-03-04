@@ -9,10 +9,10 @@ description: 바선생 멘토링 — AI 활용 능력을 코칭합니다. 요청
 
 ## 참조 경로
 
-**대화 로그**: `~/vibe-sunsang/conversations/`
+**대화 로그**: `"$HOME/vibe-sunsang/conversations/"`
 **지식 베이스**: `${CLAUDE_PLUGIN_ROOT}/skills/vibe-sunsang-knowledge/references/`
-**유형 설정**: `~/vibe-sunsang/config/workspace_types.json`
-**결과 저장**: `~/vibe-sunsang/exports/`
+**유형 설정**: `"$HOME/vibe-sunsang/config/workspace_types.json"`
+**결과 저장**: `"$HOME/vibe-sunsang/exports/"`
 
 ## 실행 흐름
 
@@ -20,7 +20,7 @@ description: 바선생 멘토링 — AI 활용 능력을 코칭합니다. 요청
 
 **모든 분석 전에 먼저 유형을 확인합니다:**
 
-1. `~/vibe-sunsang/config/workspace_types.json`을 읽어 프로젝트별 유형 확인
+1. `"$HOME/vibe-sunsang/config/workspace_types.json"`을 읽어 프로젝트별 유형 확인
 2. 분석 대상 프로젝트의 유형을 파악
 3. 유형이 없으면 **EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
 
@@ -89,7 +89,7 @@ description: 바선생 멘토링 — AI 활용 능력을 코칭합니다. 요청
 
 ### Step 3: 세션 데이터 수집
 
-1. `~/vibe-sunsang/conversations/INDEX.md`를 읽어 최신 상태 확인
+1. `"$HOME/vibe-sunsang/conversations/INDEX.md"`를 읽어 최신 상태 확인
 2. 모드에 따라 적절한 범위의 세션 파일 로딩:
    - 모드 A, B: 최근 3~5개 세션
    - 모드 C: 사용자가 지정한 세션 또는 최근 1개
@@ -149,7 +149,7 @@ description: 바선생 멘토링 — AI 활용 능력을 코칭합니다. 요청
 ### Step 6: 저장 (선택)
 
 사용자가 원하면 코칭 결과를 저장합니다:
-- 경로: `~/vibe-sunsang/exports/mentor-YYYY-MM-DD.md`
+- 경로: `"$HOME/vibe-sunsang/exports/mentor-YYYY-MM-DD.md"`
 
 ## 자동 감지 & 개입 규칙
 

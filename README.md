@@ -29,7 +29,7 @@ Claude Code 대화 기록 (JSONL)
 멘토링 / 성장 리포트 / 패턴 발견
 ```
 
-Claude Code는 여러분이 나눈 모든 대화를 `~/.claude/projects/`에 JSONL 파일로 저장합니다.
+Claude Code는 여러분이 나눈 모든 대화를 `"$HOME/.claude/projects/"`에 JSONL 파일로 저장합니다.
 바선생은 이 파일들을 **읽기 좋은 Markdown으로 변환**하고, 프로젝트별로 정리한 뒤,
 여러분의 요청 패턴, 실수 습관, 성장 지표를 분석합니다.
 
@@ -69,7 +69,7 @@ Claude Code는 여러분이 나눈 모든 대화를 `~/.claude/projects/`에 JSO
 
 온보딩이 하는 일:
 
-1. Claude Code 대화 기록(`~/.claude/projects/`) 탐색
+1. Claude Code 대화 기록(`"$HOME/.claude/projects/"`) 탐색
 2. 발견된 프로젝트에 읽기 좋은 이름 지정
 3. 워크스페이스 유형 분류 (Builder/Explorer/Designer/Operator)
 4. 모든 JSONL 대화를 Markdown으로 첫 변환
@@ -175,10 +175,10 @@ JSONL 로그를 Markdown으로 변환하고, 분석 방법을 안내합니다.
 
 ## 사용자 데이터
 
-바선생의 모든 사용자 데이터는 `~/vibe-sunsang/`에 저장됩니다:
+바선생의 모든 사용자 데이터는 `"$HOME/vibe-sunsang/"`에 저장됩니다:
 
 ```
-~/vibe-sunsang/
+"$HOME/vibe-sunsang/"
 ├── config/                   ← 설정 (프로젝트 매핑, 유형 분류)
 ├── conversations/            ← 변환된 대화 Markdown
 └── exports/                  ← 성장 리포트, 멘토링 결과

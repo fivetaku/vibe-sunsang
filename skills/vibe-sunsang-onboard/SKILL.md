@@ -7,7 +7,7 @@ description: 바선생 초기 설정 — 프로젝트 연결, 워크스페이스
 
 ### Step 0: 사용자 데이터 디렉토리 준비
 
-`~/vibe-sunsang/` 디렉토리가 있는지 확인합니다.
+`"$HOME/vibe-sunsang/"` 디렉토리가 있는지 확인합니다.
 
 **이미 존재하는 경우 (재온보딩):**
 > "이전에 설정한 바선생 데이터가 있습니다. 기존 설정을 유지하면서 새 프로젝트만 추가할까요, 아니면 처음부터 다시 설정할까요?"
@@ -35,7 +35,7 @@ description: 바선생 초기 설정 — 프로젝트 연결, 워크스페이스
 **존재하지 않는 경우:**
 
 ```bash
-mkdir -p ~/vibe-sunsang/config ~/vibe-sunsang/conversations ~/vibe-sunsang/exports
+mkdir -p "$HOME/vibe-sunsang/config" "$HOME/vibe-sunsang/conversations" "$HOME/vibe-sunsang/exports"
 ```
 
 ### Step 1: 환영 & 설명
@@ -61,10 +61,10 @@ mkdir -p ~/vibe-sunsang/config ~/vibe-sunsang/conversations ~/vibe-sunsang/expor
 
 ### Step 2: Claude Code 세션 확인
 
-`~/.claude/projects/` 디렉토리를 확인하여 사용 가능한 프로젝트 목록을 가져옵니다.
+`"$HOME/.claude/projects/"` 디렉토리를 확인하여 사용 가능한 프로젝트 목록을 가져옵니다.
 
 ```bash
-ls ~/.claude/projects/
+ls "$HOME/.claude/projects/"
 ```
 
 프로젝트가 없으면:
@@ -111,7 +111,7 @@ ls ~/.claude/projects/
 - "건너뛰기"를 선택한 프로젝트는 매핑에서 제외
 - **재온보딩 시**: 이미 매핑된 프로젝트는 건너뛰고 새 프로젝트만 질문
 
-결과를 `~/vibe-sunsang/config/project_names.json`에 저장합니다.
+결과를 `"$HOME/vibe-sunsang/config/project_names.json"`에 저장합니다.
 
 ### Step 4: 워크스페이스 유형 분류
 
@@ -159,7 +159,7 @@ ls ~/.claude/projects/
 - 프로젝트가 여러 목적이면 주된 목적 1개를 선택
 - 같은 유형이 여러 프로젝트에 반복되면 묶어서 한 번에 확인
 
-결과를 `~/vibe-sunsang/config/workspace_types.json`에 저장:
+결과를 `"$HOME/vibe-sunsang/config/workspace_types.json"`에 저장:
 
 ```json
 {
@@ -185,7 +185,7 @@ ls ~/.claude/projects/
 ### Step 5: 첫 변환 실행
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --force --names-file ~/vibe-sunsang/config/project_names.json --output-dir ~/vibe-sunsang/conversations
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --force --names-file "$HOME/vibe-sunsang/config/project_names.json" --output-dir "$HOME/vibe-sunsang/conversations" 2>/dev/null || python ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --force --names-file "$HOME/vibe-sunsang/config/project_names.json" --output-dir "$HOME/vibe-sunsang/conversations"
 ```
 
 변환 진행 상황을 보여주고, 완료되면 결과를 요약합니다:
