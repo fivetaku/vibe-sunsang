@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.2] - 2026-03-18
+
+### Fixed
+- Task → Agent 도구명 수정 (growth SKILL.md)
+
+## [1.3.1] - 2026-03-15
+
+### Fixed
+- 크로스 플랫폼 경로 호환성
+
+## [1.3.0] - 2026-03-10
+
+### Changed
+- SKILL.md EXECUTE 키워드 적용
+
 ## [1.2.0] - 2026-02-25
 
 ### Changed

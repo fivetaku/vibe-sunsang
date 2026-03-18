@@ -76,7 +76,7 @@ description: 바선생 성장 리포트 — AI 활용 세션 데이터를 분석
 > "성장 리포트를 생성하고 있습니다. 세션 데이터를 분석하는 중이니 잠시만 기다려주세요..."
 
 ```
-Task(
+Agent(
   subagent_type="vibe-sunsang:growth-analyst",
   prompt="성장 리포트를 생성해주세요.
          범위: [파악한 범위].
