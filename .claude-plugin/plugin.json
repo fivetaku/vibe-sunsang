@@ -1,7 +1,7 @@
 {
   "name": "vibe-sunsang",
-  "version": "1.4.0",
-  "description": "AI mentor agent for vibe coders - analyzes Claude Code conversations and provides growth coaching with 4 workspace types (Builder/Explorer/Designer/Operator), workspace init, and longitudinal growth tracking.",
+  "version": "2.0.0",
+  "description": "AI mentor agent for vibe coders - analyzes Claude Code conversations with 6-axis skill evaluation (DECOMP/VERIFY/ORCH/FAIL/CTX/META), NTRP-based 7-level system (L1~L7, 0.5 increments), 4 workspace types (Builder/Explorer/Designer/Operator), and longitudinal growth tracking.",
   "author": {
     "name": "chulrolee"
   },

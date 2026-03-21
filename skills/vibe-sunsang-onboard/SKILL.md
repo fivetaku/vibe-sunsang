@@ -258,13 +258,28 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --force --names-file "
 | Designer (기획자) | 기획 구체성, 구조화, 실현 가능성 |
 | Operator (운영자) | 자동화 품질, 에러 처리, 재사용성 |
 
+**v2 레벨 시스템:**
+
+바선생은 6가지 기술 차원으로 AI 활용 능력을 분석합니다:
+
+| 기술 차원 | 쉬운 설명 |
+|----------|----------|
+| DECOMP (작업 분해) | 큰 요청을 작은 단계로 나누는 능력 |
+| VERIFY (검증 전략) | AI 결과를 확인하고 검증하는 능력 |
+| ORCH (오케스트레이션) | 여러 도구를 조합하여 활용하는 능력 |
+| FAIL (실패 대응) | 오류가 나면 원인을 파악하고 대처하는 능력 |
+| CTX (맥락 관리) | AI에게 필요한 정보를 잘 전달하는 능력 |
+| META (메타인지) | 내가 AI를 어떻게 쓰는지 돌아보는 능력 |
+
+레벨은 L1.0(입문)부터 L7.0(마스터)까지, 0.5 단위로 세밀하게 측정됩니다. 유형마다 중요한 축이 달라서, 나에게 맞는 맞춤 분석을 받을 수 있어요.
+
 사용할 수 있는 기능:
 
 | 명령 | 설명 |
 |------|------|
 | `/vibe-sunsang 변환` | 새 대화 변환 (매주 실행 권장) |
-| `/vibe-sunsang 멘토링` | AI 활용 능력 코칭 (유형별 맞춤) |
-| `/vibe-sunsang 성장` | 성장 분석 리포트 (유형별 맞춤) |
+| `/vibe-sunsang 멘토링` | AI 활용 능력 코칭 (유형별 6축 맞춤) |
+| `/vibe-sunsang 성장` | 성장 분석 리포트 (6축 레이더 차트 포함) |
 
 **추천 루틴:**
 1. 매주 금요일, `/vibe-sunsang 변환` 으로 이번 주 대화 변환
@@ -283,8 +298,8 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --force --names-file "
     "question": "바로 이번 주 리뷰를 시작해볼까요?",
     "header": "다음 단계",
     "options": [
-      {"label": "멘토링 시작", "description": "AI 활용 능력 코칭 세션을 바로 시작해요"},
-      {"label": "성장 리포트 생성", "description": "성장 분석 리포트를 자동 생성해요"},
+      {"label": "멘토링 시작", "description": "AI 활용 능력 코칭 세션을 바로 시작해요 (6축 분석)"},
+      {"label": "성장 리포트 생성", "description": "성장 분석 리포트를 자동 생성해요 (6축 레이더 차트 포함)"},
       {"label": "나중에 할게요", "description": "여기서 마무리할게요"}
     ],
     "multiSelect": false

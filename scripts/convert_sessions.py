@@ -139,6 +139,18 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
         "cwd": None,
     }
 
+    # --- v2 P0 지표 수집용 카운터 ---
+    ORCH_TOOLS = {"Task", "Agent", "SendMessage"}  # 오케스트레이션 도구 목록
+    user_msg_lengths = []      # 실제 사용자 메시지(string content)의 글자 수 리스트
+    user_turn_count = 0        # tool_result 제외 사용자 발화 턴 수
+    bypass_count = 0           # bypassPermissions 엔트리 수
+    total_entry_count = 0      # 전체 엔트리 수 (bypass 비율 계산용)
+    orch_tool_count = 0        # 오케스트레이션 도구 호출 횟수
+    tool_error_count = 0       # is_error=True인 도구 결과 수
+    compact_boundary_count = 0 # compact_boundary 시스템 엔트리 수
+    assistant_turn_count = 0   # assistant 메시지 총 수
+    thinking_turn_count = 0    # thinking 블록 포함 assistant 턴 수
+
     with open(jsonl_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -151,6 +163,7 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
 
             entry_type = entry.get("type", "")
             timestamp = entry.get("timestamp", "")
+            total_entry_count += 1
 
             # 메타데이터 수집
             if metadata["start_time"] is None and timestamp:
@@ -162,6 +175,14 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
                 metadata["git_branch"] = entry["gitBranch"]
             if entry.get("cwd"):
                 metadata["cwd"] = entry["cwd"]
+
+            # P0: bypass_permission — permissionMode 확인
+            if entry.get("permissionMode") == "bypassPermissions":
+                bypass_count += 1
+
+            # P0: compact_boundary — system subtype 확인
+            if entry_type == "system" and entry.get("subtype") == "compact_boundary":
+                compact_boundary_count += 1
 
             msg = entry.get("message", {})
             role = msg.get("role", entry_type)
@@ -179,6 +200,37 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
             content = msg.get("content", "")
             if not content:
                 continue
+
+            # --- 사용자 메시지 구분: string(사람 발화) vs list(도구 결과) ---
+            if role in ("user", "human"):
+                if isinstance(content, str) and content.strip():
+                    # 실제 사용자 발화
+                    user_turn_count += 1
+                    user_msg_lengths.append(len(content))
+                elif isinstance(content, list):
+                    # 도구 결과 (tool_result) — P0: 에러 카운팅
+                    for item in content:
+                        if isinstance(item, dict) and item.get("is_error"):
+                            tool_error_count += 1
+
+            # --- assistant 메시지: 오케스트레이션 도구 + thinking 블록 ---
+            if role == "assistant" and isinstance(content, list):
+                assistant_turn_count += 1
+                has_thinking = False
+                for block in content:
+                    if isinstance(block, dict):
+                        # P0: 오케스트레이션 도구 카운팅
+                        if block.get("type") == "tool_use":
+                            tool_name = block.get("name", "")
+                            if tool_name in ORCH_TOOLS:
+                                orch_tool_count += 1
+                        # P0: thinking 블록 감지
+                        if block.get("type") == "thinking":
+                            has_thinking = True
+                if has_thinking:
+                    thinking_turn_count += 1
+            elif role == "assistant" and isinstance(content, str) and content.strip():
+                assistant_turn_count += 1
 
             text = extract_text_content(content, verbose=verbose)
             if not text or not text.strip():
@@ -206,6 +258,25 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
     metadata["models_used"] = sorted(metadata["models_used"])
     metadata["tools_used"] = sorted(metadata["tools_used"])
     metadata["message_count"] = len(messages)
+
+    # --- v2 P0 지표 계산 ---
+    metadata["avg_user_msg_len"] = (
+        round(sum(user_msg_lengths) / len(user_msg_lengths))
+        if user_msg_lengths else 0
+    )
+    metadata["user_turn_count"] = user_turn_count
+    metadata["bypass_permission_ratio"] = (
+        round(bypass_count / total_entry_count, 2)
+        if total_entry_count > 0 else 0.0
+    )
+    metadata["has_orchestration"] = orch_tool_count > 0
+    metadata["orch_tool_count"] = orch_tool_count
+    metadata["tool_error_count"] = tool_error_count
+    metadata["compact_boundaries"] = compact_boundary_count
+    metadata["thinking_turn_ratio"] = (
+        round(thinking_turn_count / assistant_turn_count, 2)
+        if assistant_turn_count > 0 else 0.0
+    )
 
     return {"messages": messages, "metadata": metadata}
 
@@ -253,6 +324,16 @@ def session_to_markdown(session_data: dict, project_name: str) -> str:
         lines.append(f"git_branch: {meta['git_branch']}")
     if meta["cwd"]:
         lines.append(f"working_dir: {meta['cwd']}")
+
+    # v2 P0 지표
+    lines.append(f"avg_user_msg_len: {meta['avg_user_msg_len']}")
+    lines.append(f"user_turn_count: {meta['user_turn_count']}")
+    lines.append(f"bypass_permission_ratio: {meta['bypass_permission_ratio']}")
+    lines.append(f"has_orchestration: {str(meta['has_orchestration']).lower()}")
+    lines.append(f"orch_tool_count: {meta['orch_tool_count']}")
+    lines.append(f"tool_error_count: {meta['tool_error_count']}")
+    lines.append(f"compact_boundaries: {meta['compact_boundaries']}")
+    lines.append(f"thinking_turn_ratio: {meta['thinking_turn_ratio']}")
     lines.append("---")
     lines.append("")
 

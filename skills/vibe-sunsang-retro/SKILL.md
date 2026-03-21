@@ -87,10 +87,10 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file "$HOME/vi
    > "[프로젝트명] 세션들을 분석해줘. 주요 작업 유형, 반복 에러, 도구 활용 패턴을 정리해줘."
 
 2. **성장 트래커** → "성장 리포트 만들어줘" 또는 `/vibe-sunsang 성장`
-   > 성장 리포트를 생성합니다.
+   > 성장 리포트를 생성합니다. (v2: 6축 기술 차원 분석 + 레이더 차트 포함)
 
 3. **멘토링 세션** → "멘토링해줘" 또는 `/vibe-sunsang 멘토링`
-   > AI 활용 능력을 코칭 받습니다.
+   > AI 활용 능력을 코칭 받습니다. (v2: 6축 중심 맞춤 분석)
 
 4. **버그/실수 패턴**
    > "모든 프로젝트에서 내가 겪은 실수 패턴을 찾아줘."
@@ -100,6 +100,9 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file "$HOME/vi
 
 6. **비용 분석**
    > "프로젝트별 토큰 사용량과 모델 분포를 정리해줘."
+
+7. **6축 분석**
+   > "최근 세션을 6축(DECOMP/VERIFY/ORCH/FAIL/CTX/META) 기준으로 분석해줘."
 
 ### 데이터 경로
 
