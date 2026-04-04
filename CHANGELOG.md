@@ -8,7 +8,7 @@
 - growth-metrics.md 포맷 변경: 6축×7레벨 행동 기술자 매트릭스
 
 ### Added
-- NTRP(테니스) 기반 레벨 시스템 설계: "할 수 있는가"가 아닌 "일관되게 하는가" 기준
+- 7단계 레벨 시스템 설계: "할 수 있는가"가 아닌 "일관되게 하는가" 기준
 - 6대 기술 차원: 작업 분해, 검증 전략, 오케스트레이션, 실패 대응, 맥락 관리, 메타인지
 - 0.5 단위 레벨 세분화 (L1.0~L7.0, 내부 소수점 2자리 추적)
 - 3단계 레이팅: 자기평가 → 동적 레이팅 → 공식 레이팅
@@ -30,7 +30,6 @@
 - README: v2 레벨 시스템 반영
 
 ### References
-- NTRP (National Tennis Rating Program)
 - SFIA 7단계 (Skills Framework for the Information Age)
 - Bloom's Taxonomy, Dreyfus Model
 - Boris Cherny (Claude Code), Andrej Karpathy (Vibe Coding → Agentic Engineering)
