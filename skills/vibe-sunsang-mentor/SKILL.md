@@ -1,6 +1,6 @@
 ---
 name: vibe-sunsang-mentor
-description: 바선생 멘토링 — AI 활용 능력을 코칭합니다. 요청 품질, 안티패턴, 개념 학습, 종합 코칭 4가지 모드를 지원합니다. v2 레벨 시스템(6축×7단계, 0.5 단위)으로 분석합니다. "멘토링해줘", "코칭해줘", "요청 코칭해줘", "뭘 잘못하고 있는지", "어떻게 요청하면 좋을지", "mentor", "coach" 같은 요청에 사용됩니다.
+description: AI-collaboration mentoring — coaches users on request quality, anti-patterns, and concepts across 4 modes, analyzed via v2 level system (6 axes × 7 levels, 0.5 increments). Korean triggers: "멘토링해줘", "코칭해줘", "요청 코칭해줘", "뭘 잘못하고 있는지", "어떻게 요청하면 좋을지". English triggers: "mentor", "coach", "coaching", "improve my requests".
 ---
 
 # Mentor - AI 활용 멘토 스킬

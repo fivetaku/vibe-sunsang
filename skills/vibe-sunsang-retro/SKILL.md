@@ -1,6 +1,6 @@
 ---
 name: vibe-sunsang-retro
-description: 바선생 대화 변환 — Claude Code 대화 로그를 Markdown으로 변환하고 분석 가이드를 제공합니다. "변환", "retro", "대화 변환", "로그 변환", "회고", "이번 주 대화" 같은 요청에 사용됩니다.
+description: Conversation-log converter — transforms Claude Code JSONL logs into Markdown and provides an analysis guide. Korean triggers: "변환", "대화 변환", "로그 변환", "회고", "이번 주 대화". English triggers: "retro", "convert conversations", "log conversion".
 ---
 
 ## 실행: 대화 로그 변환

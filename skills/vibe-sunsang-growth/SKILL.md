@@ -1,6 +1,6 @@
 ---
 name: vibe-sunsang-growth
-description: 바선생 성장 리포트 — AI 활용 세션 데이터를 분석하여 성장 리포트를 자동 생성합니다. v2 레벨 시스템(6축×7단계, 0.5 단위)으로 분석합니다. "성장 리포트", "성장 분석", "얼마나 성장했는지", "레벨 체크", "성장 트래킹", "growth" 같은 요청에 사용됩니다.
+description: Growth report generator — analyzes AI-collaboration session data and produces a progression report using the v2 level system (6 axes × 7 levels, 0.5 increments). Korean triggers: "성장 리포트", "성장 분석", "얼마나 성장했는지", "레벨 체크", "성장 트래킹". English triggers: "growth report", "growth tracking", "level check".
 ---
 
 # Growth - 성장 리포트 생성 스킬

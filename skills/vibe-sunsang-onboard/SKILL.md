@@ -1,6 +1,6 @@
 ---
 name: vibe-sunsang-onboard
-description: 바선생 초기 설정 — 워크스페이스 생성, 프로젝트 연결, 유형 분류, 첫 변환까지 안내합니다. "바선생 시작", "온보딩", "초기 설정", "init", "초기화", "셋업", "setup" 같은 요청에 사용됩니다.
+description: Vibe-sunsang initial setup — guides through workspace creation, project linking, type classification, and first conversion. Korean triggers: "바선생 시작", "온보딩", "초기 설정", "초기화", "셋업". English triggers: "onboarding", "init", "setup", "start vibe-sunsang".
 ---
 
 ## 바선생 온보딩

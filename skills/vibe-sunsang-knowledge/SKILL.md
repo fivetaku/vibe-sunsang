@@ -1,6 +1,6 @@
 ---
 name: vibe-sunsang-knowledge
-description: 바선생 지식 베이스 — 바선생의 레벨 시스템(v2 6축×7단계), 안티패턴, 워크스페이스 유형 등 바선생 고유 개념에 대한 질문에 응답합니다. "바선생 안티패턴이 뭐야?", "바선생 레벨 시스템 설명해줘", "6축이 뭐야?", "바선생 성장 지표" 같은 요청에 사용됩니다.
+description: Vibe-sunsang knowledge base — answers questions about the level system (v2 6-axis × 7 levels), anti-patterns, and workspace types. Korean triggers: "바선생 안티패턴이 뭐야?", "바선생 레벨 시스템 설명해줘", "6축이 뭐야?", "바선생 성장 지표". English triggers: "vibe-sunsang levels", "anti-patterns", "workspace types".
 ---
 
 # 바선생 지식 베이스
