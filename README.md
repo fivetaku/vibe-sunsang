@@ -1,215 +1,282 @@
+[한국어](README.ko.md)
+
+# vibe-sunsang (바선생)
+
 <p align="center">
-  <img src="assets/logo.jpeg" alt="바선생" width="300">
+  <img src="assets/logo.jpeg" alt="vibe-sunsang" width="240">
 </p>
 
-# 바선생 (Vibe Sunsang)
+> **An AI mentor agent that turns your Claude Code conversation history into a growth engine.**
 
-> 바이브코더를 위한 AI 멘토 에이전트.
+vibe-sunsang automatically collects, converts, and analyzes every conversation you have with Claude Code — so you can become a more effective AI collaborator over time.
 
-Claude Code와 나눈 **모든 대화를 자동으로 수집, 변환, 분석**하여 더 나은 AI 협업자로 성장할 수 있게 도와줍니다.
-
----
-
-## 이런 분을 위한 도구입니다
-
-- 개발 지식 없이 AI로 코딩하는 **바이브코더**
-- "나는 뭘 잘못하고 있는 거지?" 궁금한 사람
-- 매주 내가 한 작업을 돌아보며 **AI 활용 실력을 키우고 싶은** 사람
-- AI한테 "고쳐줘"만 반복하다가 지친 사람
+[Quick Start](#quick-start) • [Why vibe-sunsang?](#why-vibe-sunsang) • [How it works](#how-it-works) • [Modes](#modes) • [Level system](#level-system) • [Requirements](#requirements)
 
 ---
 
-## 어떻게 작동하나요?
+## Quick Start
 
-```
-Claude Code 대화 기록 (JSONL)
-        ↓ 자동 변환
-읽기 좋은 Markdown 파일
-        ↓ 6축 분석 (DECOMP/VERIFY/ORCH/FAIL/CTX/META)
-멘토링 / 성장 리포트 / 패턴 발견
-        ↓ Fit Score 종합
-7단계 레벨 판정 (L1.0~L7.0, 0.5 단위)
-```
-
-Claude Code는 여러분이 나눈 모든 대화를 `"$HOME/.claude/projects/"`에 JSONL 파일로 저장합니다.
-바선생은 이 파일들을 **읽기 좋은 Markdown으로 변환**하고, 프로젝트별로 정리한 뒤,
-여러분의 요청 패턴, 실수 습관, 성장 지표를 분석합니다.
-
----
-
-## 빠른 시작
-
-### 1. 설치
+### 1. Install
 
 ```
 /plugin marketplace add https://github.com/fivetaku/gptaku_plugins.git
 /plugin install vibe-sunsang
 ```
 
-> 설치 후에는 Claude Code를 **재시작**하세요.
+Then **restart Claude Code**.
 
-### 2. 첫 실행
+### 2. Run onboarding
 
-아무 프로젝트에서:
+In any project:
 
 ```
 /vibe-sunsang 시작
 ```
 
-온보딩이 하는 일:
+Onboarding will:
 
-1. `~/vibe-sunsang/` 워크스페이스 자동 생성 (CLAUDE.md, .gitignore, git init 포함)
-2. Claude Code 대화 기록(`"$HOME/.claude/projects/"`) 탐색
-3. 발견된 프로젝트에 읽기 좋은 이름 지정
-4. 워크스페이스 유형 분류 (Builder/Explorer/Designer/Operator)
-5. 모든 JSONL 대화를 Markdown으로 첫 변환
-6. 바로 시작할지 선택 (멘토링 / 성장 리포트 / 나중에)
+1. Create `~/vibe-sunsang/` workspace (with `CLAUDE.md`, `.gitignore`, and `git init`)
+2. Scan your Claude Code conversation history at `~/.claude/projects/`
+3. Let you assign readable names to each discovered project
+4. Classify each project by workspace type (Builder / Explorer / Designer / Operator)
+5. Convert all JSONL logs to Markdown for the first time
+6. Ask whether to jump straight into mentoring or a growth report
 
-> **v1.4.0부터** 워크스페이스에 `.claude/commands`, `.claude/skills`, `10-scripts/` 등 로컬 파일이 더 이상 필요하지 않습니다. 플러그인이 Single Source of Truth로 모든 기능을 제공합니다. 이전 버전 구조가 감지되면 자동으로 마이그레이션을 안내합니다.
-
----
-
-## 핵심 기능
-
-### 1. `/vibe-sunsang 변환` - 대화 변환 + 분석 가이드
-
-JSONL 로그를 Markdown으로 변환하고, 분석 방법을 안내합니다.
+### 3. Use it weekly
 
 ```
-/vibe-sunsang 변환              ← 새 대화만 변환 (증분)
-/vibe-sunsang 변환 force        ← 전체 재변환
-/vibe-sunsang 변환 프로젝트명    ← 특정 프로젝트만 변환
-```
-
-**변환 결과:**
-- 프로젝트별 폴더로 정리된 Markdown 파일
-- 각 파일에 메타데이터 포함 (날짜, 토큰 수, 사용 모델, 도구 목록)
-- 전체 인덱스(`INDEX.md`)로 한눈에 파악
-
----
-
-### 2. `멘토링해줘` - AI 활용 능력 코칭
-
-4가지 모드로 맞춤형 멘토링을 제공합니다.
-
-| 모드 | 트리거 | 하는 일 |
-|------|--------|---------|
-| **A: 요청 품질 코칭** | "요청 코칭해줘" | 내 요청이 얼마나 명확했는지 A~D 등급으로 채점 |
-| **B: 안티패턴 진단** | "뭘 잘못하고 있는지" | 8가지 나쁜 습관 체크. 구체적 사례와 해결 전략 |
-| **C: 개념 학습** | "이게 뭐야" | 최근 대화에 나온 개념을 비유와 예시로 쉽게 설명 |
-| **D: 종합 코칭** (기본) | "멘토링해줘" | 전체 점검 + 레벨 판정 + 행동 계획 |
-
----
-
-### 3. `성장 리포트 만들어줘` - 성장 리포트 자동 생성
-
-대량의 세션 데이터를 전용 AI 에이전트가 분석하여 성장 리포트를 자동 생성합니다.
-
-**리포트에 포함되는 분석:**
-
-1. **기본 통계** - 총 세션 수, 메시지 수, 토큰 사용량
-2. **요청 품질 분석** - 구체적/모호한 요청 비율
-3. **안티패턴 탐지** - 유형별 나쁜 습관 체크
-4. **6축 평가** - DECOMP/VERIFY/ORCH/FAIL/CTX/META 독립 점수
-5. **레벨 판정** - Fit Score 기반 7단계(L1.0~L7.0) 중 현재 위치
-6. **종단 비교** - 전체 리포트 히스토리 기반 트렌드 분석, 돌파구/정체기 감지
-7. **TIMELINE.md 자동 업데이트** - 레벨, 6축 점수, 안티패턴 변화를 타임라인으로 누적 추적
-
----
-
-## 사용법
-
-### 워크스페이스 유형 시스템
-
-바선생은 각 프로젝트의 **워크스페이스 목적**에 따라 다른 기준으로 분석합니다.
-
-| 유형 | 워크스페이스 목적 | 레벨 시스템 |
-|------|-------------------|-------------|
-| **Builder** | 코딩/개발 | Observer → Forgemaster |
-| **Explorer** | 리서치/Q&A/학습 | Asker → Scholar |
-| **Designer** | 기획/아이디에이션 | Dreamer → Visionary |
-| **Operator** | 업무 자동화 | User → Automator |
-
-### 레벨 시스템
-
-바선생은 당신의 AI 활용 수준을 **7단계(+0.5 단위 세분화)**로 진단합니다. "할 수 있는가"가 아닌 **"일관되게 하는가"**를 기준으로 삼습니다.
-
-**Builder 유형 레벨 테이블** (다른 유형은 레벨명만 다름):
-
-| Level | 이름 | 특징 |
-|-------|------|------|
-| L1 | **Observer** (관찰자) | "만들어줘"만 요청, 결과를 그대로 수용 |
-| L2 | **Tinkerer** (만지작거리는 사람) | "왜?"를 물어보기 시작, 에러 메시지를 읽으려 시도 |
-| L3 | **Collaborator** (협력자) | 파일명·함수명 포함 구체적 요청, 대안을 질문 |
-| L4 | **Pilot** (조종사) | 작업을 단계별 분해, 비판적 검증 주도, 제약 조건 명시 |
-| L5 | **Architect** (설계자) | AI 한계를 예측하여 태스크 설계, 워크플로우 설계 |
-| L6 | **Conductor** (지휘자) | 멀티에이전트 팀 구성·조율, 조직 수준 AI 역량 개발 |
-| L7 | **Forgemaster** (대장장이) | 새로운 방법론·패러다임 창조, 커뮤니티 기여 |
-
-*(레벨명은 워크스페이스 유형에 따라 달라집니다)*
-
-### 6축 기술 차원
-
-레벨은 단일 수치가 아닌 **6개 기술 차원**을 독립적으로 평가한 뒤 종합합니다:
-
-| 코드 | 기술 차원 | 한 줄 정의 |
-|------|----------|-----------|
-| **DECOMP** | 작업 분해 | 복잡한 요청을 AI가 처리 가능한 단위로 나누는 능력 |
-| **VERIFY** | 검증 전략 | AI 출력물을 비판적으로 검토하고 품질을 확인하는 능력 |
-| **ORCH** | 오케스트레이션 | 도구, 에이전트, 워크플로우를 조합하여 활용하는 능력 |
-| **FAIL** | 실패 대응 | 오류, 한계, 예상치 못한 결과에 대처하는 능력 |
-| **CTX** | 맥락 관리 | AI에게 적절한 배경 정보, 제약 조건, 목표를 제공하는 능력 |
-| **META** | 메타인지 | 자신의 AI 활용 패턴을 인식하고 전략적으로 조정하는 능력 |
-
-### 추천 루틴
-
-#### 매주 금요일 (15분)
-
-```
-1. /vibe-sunsang 변환        ← 이번 주 대화 변환
-2. 멘토링해줘                 ← 이번 주 리뷰
-3. 행동 계획 실천              ← 다음 주에 시도할 것 1가지
-```
-
-#### 매월 1회 (30분)
-
-```
-1. /vibe-sunsang 변환 force  ← 전체 변환
-2. 성장 리포트 만들어줘        ← 월간 성장 리포트
-3. 이전 리포트와 비교          ← 자동으로 트렌드 분석
+/vibe-sunsang 변환      ← convert this week's conversations
+/vibe-sunsang 멘토링    ← get coaching on your AI usage patterns
+/vibe-sunsang 성장      ← generate a growth report
+/vibe-sunsang 지식      ← explore the level system and concepts
 ```
 
 ---
 
-## 파일 구조
+## Why vibe-sunsang?
 
-바선생의 모든 사용자 데이터는 `"$HOME/vibe-sunsang/"`에 저장됩니다:
-
-```
-"$HOME/vibe-sunsang/"
-├── CLAUDE.md                 ← 워크스페이스 설명 (Init이 자동 생성)
-├── .gitignore                ← Git 설정 (Init이 자동 생성)
-├── config/                   ← 설정 (프로젝트 매핑, 유형 분류)
-├── conversations/            ← 변환된 대화 Markdown
-├── exports/                  ← 성장 리포트, 멘토링 결과
-└── growth-log/               ← 종단 성장 추적
-    ├── TIMELINE.md           ← 레벨/지표 변화 타임라인
-    └── weekly/               ← 주간 회고 노트
-```
-
-플러그인 코드와 사용자 데이터가 완전히 분리되어, 플러그인 업데이트 시 데이터가 영향받지 않습니다.
-
-> `.claude/commands`, `.claude/skills`, `10-scripts/` 등 워크스페이스 로컬 파일은 v1.4.0부터 불필요합니다. 플러그인이 모든 기능을 직접 제공합니다.
+- **Your conversations already hold the data** — Claude Code stores every session as JSONL. vibe-sunsang reads those files so nothing new needs to be logged
+- **Not just "what did I build" — "how did I build it"** — analysis focuses on your request quality, error recovery habits, and strategic thinking, not just output volume
+- **Workspace-type-aware** — the level system adapts to what you are actually doing (coding, researching, planning, or automating)
+- **Six dimensions, not one score** — DECOMP, VERIFY, ORCH, FAIL, CTX, META are measured independently so you know exactly which skill to develop next
+- **Longitudinal tracking** — each growth report updates `TIMELINE.md` so you can see progress across months, not just a single session
+- **Non-developer friendly** — plain-language coaching with analogies, no jargon wall
 
 ---
 
-## 요구사항
+## How it works
 
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
+```
+Claude Code conversation logs (~/.claude/projects/)
+                    |
+                    | /vibe-sunsang 변환
+                    v
+     Readable Markdown files (~/vibe-sunsang/conversations/)
+                    |
+                    | 6-axis analysis
+                    | (DECOMP / VERIFY / ORCH / FAIL / CTX / META)
+                    v
+     Mentoring session  ←→  Growth report  ←→  Concept learning
+                    |
+                    | Fit Score  ×  workspace-type weights
+                    v
+     Level judgment: L1.0 – L7.0 (0.5-step increments)
+                    |
+                    v
+     TIMELINE.md (longitudinal growth tracking)
+```
+
+Conversation data and plugin code live in separate directories, so plugin updates never touch your data.
+
+---
+
+## Modes
+
+### Onboard (`시작`)
+
+Sets up the `~/vibe-sunsang/` workspace, maps project names, classifies workspace types, and runs the first full conversion.
+
+---
+
+### Convert (`변환`)
+
+Converts Claude Code JSONL logs to readable Markdown files organized by project.
+
+| Command | Behavior |
+|---------|----------|
+| `/vibe-sunsang 변환` | Incremental — only new sessions |
+| `/vibe-sunsang 변환 force` | Full re-convert |
+| `/vibe-sunsang 변환 <project name>` | Single project only |
+
+Each converted file includes metadata frontmatter: date, token counts, model used, and tools called. An `INDEX.md` gives you the full overview at a glance.
+
+---
+
+### Mentor (`멘토링`)
+
+Four coaching modes, each focused on different skill dimensions:
+
+| Mode | Trigger | What it does | Core axes |
+|------|---------|--------------|-----------|
+| **A — Request quality** | "요청 코칭해줘" | Grades your prompts A–D for clarity and context | DECOMP + CTX |
+| **B — Antipattern diagnosis** | "뭘 잘못하고 있는지" | Detects bad habits with specific examples and fix strategies | FAIL + VERIFY |
+| **C — Concept learning** | "이게 뭐야" | Explains concepts from your recent sessions in plain language | META |
+| **D — Full coaching** (default) | "멘토링해줘" | Complete 6-axis checkup, level judgment, and action plan | all 6 axes |
+
+Mode D outputs a text radar chart and a three-step action plan: one thing to do right now, one this week, one within a month.
+
+Coaching results can be saved to `~/vibe-sunsang/exports/mentor-YYYY-MM-DD.md`.
+
+---
+
+### Growth report (`성장`)
+
+Delegates analysis to a dedicated `growth-analyst` subagent to keep the main context lean. The agent reads your session files, scores all six dimensions, and writes a full report.
+
+**Time range options:**
+
+| Range | Coverage |
+|-------|----------|
+| This week | Last 7 days |
+| Last 2 weeks (recommended) | Last 14 days |
+| This month | Last 30 days |
+| Specific project | Full project history |
+
+**Report includes:**
+
+1. Basic stats — session count, message count, token usage
+2. 6-axis technical dimension analysis with scores and weights
+3. Text radar chart
+4. Gate condition status table (requirements to reach the next level)
+5. Antipattern detection (calibrated to your workspace type)
+6. Longitudinal comparison against all previous reports
+7. Level card with progression bar
+8. Level-up message if you advanced (L4→L5 gets a special "80% wall" event)
+9. `TIMELINE.md` auto-update
+
+---
+
+### Knowledge (`지식`)
+
+Answers questions about the vibe-sunsang framework itself:
+
+| Topic | Description |
+|-------|-------------|
+| Level system | 7-level progression (0.5 increments) and what each level means |
+| Six axes | Definitions and examples for DECOMP, VERIFY, ORCH, FAIL, CTX, META |
+| Workspace types | What Builder / Explorer / Designer / Operator means for your analysis |
+| Antipatterns | Bad habits to watch for, calibrated to your workspace type |
+| Request quality | How to write better prompts |
+| Growth metrics | Fit Score formula, gate conditions, type-specific weights |
+
+---
+
+## Level system
+
+### 6 technical dimensions
+
+| Code | Dimension | One-line definition |
+|------|-----------|---------------------|
+| **DECOMP** | Task decomposition | Breaking complex requests into units AI can handle |
+| **VERIFY** | Verification strategy | Critically reviewing AI output rather than accepting it |
+| **ORCH** | Orchestration | Combining tools, agents, and workflows |
+| **FAIL** | Failure recovery | Diagnosing errors and finding alternatives |
+| **CTX** | Context management | Supplying background, constraints, and goals to AI |
+| **META** | Metacognition | Recognizing and strategically adjusting your AI usage patterns |
+
+### Workspace types and weights
+
+Analysis weights differ by what you are actually doing:
+
+| Dimension | Builder | Explorer | Designer | Operator |
+|-----------|---------|----------|----------|----------|
+| DECOMP | **25%** | 15% | 20% | 15% |
+| VERIFY | **25%** | 15% | 15% | 20% |
+| ORCH | 15% | 10% | 10% | **25%** |
+| FAIL | 15% | **20%** | 10% | **20%** |
+| CTX | 10% | **20%** | **25%** | 10% |
+| META | 10% | **20%** | **20%** | 10% |
+
+### 7-level progression (per workspace type)
+
+| Level | Builder | Explorer | Designer | Operator |
+|-------|---------|----------|----------|----------|
+| L1 | Observer | Asker | Dreamer | User |
+| L2 | Tinkerer | Curious | Sketcher | Repeater |
+| L3 | Collaborator | Digger | Shaper | Optimizer |
+| L4 | Pilot | Investigator | Planner | Builder |
+| L5 | Architect | Analyst | Strategist | Engineer |
+| L6 | Conductor | Synthesizer | Director | Orchestrator |
+| L7 | Forgemaster | Scholar | Visionary | Automator |
+
+Levels are scored to two decimal places internally, then rounded to 0.5 increments for display. The criterion is not "can you do this" but "do you do this consistently."
+
+### Gate conditions
+
+| Gate | Requirement |
+|------|-------------|
+| L3 | Context specificity ratio > 0.5 |
+| L4 | Verification ratio > 0.15 AND correction ratio > 0.05 |
+| L5 | Tool diversity > 8 (or orchestration tool present) AND strategic ratio > 0.05 |
+| L6 | Multi-agent experience present |
+| L7 | L6 gate + evidence of external contribution |
+
+---
+
+## Suggested routine
+
+**Every Friday (15 min)**
+
+```
+1. /vibe-sunsang 변환      ← convert this week's sessions
+2. 멘토링해줘               ← weekly review
+3. Pick one thing to try next week
+```
+
+**Monthly (30 min)**
+
+```
+1. /vibe-sunsang 변환 force  ← full re-convert
+2. 성장 리포트 만들어줘        ← monthly growth report
+3. Compare with previous reports — trends are shown automatically
+```
+
+---
+
+## File structure
+
+All user data lives in `~/vibe-sunsang/`. Plugin code lives separately.
+
+```
+~/vibe-sunsang/
+├── CLAUDE.md                 ← workspace description (created by onboarding)
+├── .gitignore
+├── config/                   ← project name map, workspace type classifications
+├── conversations/            ← converted Markdown sessions
+│   └── INDEX.md              ← full project index
+├── exports/                  ← growth reports, mentor session saves
+└── growth-log/
+    ├── TIMELINE.md           ← level and 6-axis history across all reports
+    └── weekly/               ← weekly retrospective notes
+```
+
+---
+
+## Requirements
+
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - Python 3.8+
 
 ---
 
-## 라이선스
+## License
 
 MIT
+
+---
+
+<div align="center">
+
+**Stop guessing how to improve. Let your own conversations show you.**
+
+</div>
