@@ -1,4 +1,4 @@
-[English](README.md)
+[English](README.md) | 한국어
 
 # vibe-sunsang (바선생)
 
