@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.2] - 2026-05-03
+
+### Added
+- `convert_sessions.py`: 크로스 환경 / 비표준 위치 지원
+  - `--projects-dir` CLI 플래그 — projects 디렉토리 직접 지정
+  - `CLAUDE_CONFIG_DIR` 환경변수 인식 (Claude Code 공식 컨벤션)
+  - WSL 자동 감지 + `/mnt/c/Users/$USER/.claude/projects` 폴백
+  - 디렉토리 부재 시 디버깅 정보(env / WSL 상태) 포함된 에러 메시지
+
+### Changed
+- README / README.ko: "Conversation source path" / "대화 세션 경로" 섹션 추가
+
 ## [2.0.0] - 2026-03-21
 
 ### Breaking Changes

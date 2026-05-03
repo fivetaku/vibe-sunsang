@@ -267,6 +267,23 @@ Claude Code의 JSONL 로그를 프로젝트별로 정리된 읽기 좋은 Markdo
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - Python 3.8+
 
+### 대화 세션 경로
+
+기본값은 `~/.claude/projects/`. 다음 순서로 결정됩니다:
+
+1. `--projects-dir <경로>` 플래그 (`convert_sessions.py`에 전달)
+2. `$CLAUDE_CONFIG_DIR/projects` (`CLAUDE_CONFIG_DIR` 환경변수 설정 시)
+3. `~/.claude/projects/` (기본값)
+4. WSL 폴백: `/mnt/c/Users/$USER/.claude/projects` (1~3이 모두 안 잡힐 때만)
+
+크로스 환경(WSL ↔ Windows) 또는 Claude 설정을 다른 위치에 둔 경우 `--projects-dir`로 직접 지정할 수 있습니다:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py \
+  --projects-dir /custom/path/.claude/projects \
+  --output-dir "$HOME/vibe-sunsang/conversations"
+```
+
 ---
 
 ## 라이선스

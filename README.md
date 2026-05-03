@@ -267,6 +267,23 @@ All user data lives in `~/vibe-sunsang/`. Plugin code lives separately.
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - Python 3.8+
 
+### Conversation source path
+
+By default vibe-sunsang reads sessions from `~/.claude/projects/`. The resolution order:
+
+1. `--projects-dir <path>` flag (passed to `convert_sessions.py`)
+2. `$CLAUDE_CONFIG_DIR/projects` if `CLAUDE_CONFIG_DIR` env var is set
+3. `~/.claude/projects/` (default)
+4. WSL fallback: `/mnt/c/Users/$USER/.claude/projects` (only if 1–3 don't resolve)
+
+Use `--projects-dir` when running across environments (e.g., WSL ↔ Windows) or when your Claude config lives outside `~/.claude/`:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py \
+  --projects-dir /custom/path/.claude/projects \
+  --output-dir "$HOME/vibe-sunsang/conversations"
+```
+
 ---
 
 ## License

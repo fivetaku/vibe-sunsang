@@ -8,11 +8,52 @@ Claude Code 세션 JSONL → Markdown 변환기
 
 import argparse
 import json
+import os
+import platform
 import sys
 from datetime import datetime
 from pathlib import Path
 
-CLAUDE_PROJECTS_DIR = Path.home() / ".claude" / "projects"
+
+def _is_wsl() -> bool:
+    try:
+        return "microsoft" in platform.uname().release.lower()
+    except Exception:
+        return False
+
+
+def _wsl_windows_projects() -> Path | None:
+    """WSL 환경에서 Windows 측 Claude 세션 디렉토리 추정."""
+    user = os.environ.get("USER")
+    if not user:
+        return None
+    candidate = Path(f"/mnt/c/Users/{user}/.claude/projects")
+    return candidate if candidate.exists() else None
+
+
+def resolve_projects_dir(override: Path | None = None) -> Path:
+    """Claude projects 디렉토리 결정.
+
+    우선순위:
+        1. override (--projects-dir CLI 플래그)
+        2. $CLAUDE_CONFIG_DIR/projects (Claude Code 공식 컨벤션)
+        3. ~/.claude/projects (기본값, 존재 시)
+        4. WSL 환경: /mnt/c/Users/$USER/.claude/projects (폴백)
+        5. 기본값 (~/.claude/projects) — 호출부에서 부재 안내
+    """
+    if override:
+        return override.expanduser()
+    if env := os.environ.get("CLAUDE_CONFIG_DIR"):
+        return Path(env).expanduser() / "projects"
+    default = Path.home() / ".claude" / "projects"
+    if default.exists():
+        return default
+    if _is_wsl() and (wsl_path := _wsl_windows_projects()):
+        return wsl_path
+    return default
+
+
+CLAUDE_PROJECTS_DIR = resolve_projects_dir()
 DEFAULT_OUTPUT_DIR = Path.home() / "vibe-sunsang" / "conversations"
 DEFAULT_NAMES_FILE = Path.home() / "vibe-sunsang" / "config" / "project_names.json"
 
@@ -514,6 +555,15 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Convert a specific project only (by directory name)",
     )
+    parser.add_argument(
+        "--projects-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Claude projects 디렉토리 직접 지정 "
+            "(기본 우선순위: $CLAUDE_CONFIG_DIR/projects → ~/.claude/projects → WSL fallback)"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -522,6 +572,20 @@ def main():
 
     output_dir = args.output_dir if args.output_dir else DEFAULT_OUTPUT_DIR
     names_file = args.names_file if args.names_file else DEFAULT_NAMES_FILE
+
+    # CLI 오버라이드 / env var / WSL 폴백을 반영하여 projects 디렉토리 재결정
+    global CLAUDE_PROJECTS_DIR
+    CLAUDE_PROJECTS_DIR = resolve_projects_dir(args.projects_dir)
+
+    if not CLAUDE_PROJECTS_DIR.exists():
+        print(
+            f"[ERROR] Claude projects 디렉토리를 찾지 못했습니다: {CLAUDE_PROJECTS_DIR}\n"
+            f"  - $CLAUDE_CONFIG_DIR: {os.environ.get('CLAUDE_CONFIG_DIR', '(unset)')}\n"
+            f"  - WSL 감지: {_is_wsl()}\n"
+            f"  --projects-dir <경로> 로 직접 지정하세요.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     # Load project names at runtime (not module level)
     project_names = load_project_names(names_file)
