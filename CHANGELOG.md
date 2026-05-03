@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.2] - 2026-05-03
+## [2.0.2] - 2026-05-04
 
 ### Added
 - `convert_sessions.py`: 크로스 환경 / 비표준 위치 지원
@@ -11,6 +11,14 @@
 
 ### Changed
 - README / README.ko: "Conversation source path" / "대화 세션 경로" 섹션 추가
+- mentor SKILL.md "3단계 행동 계획" 시간축 가변화 (fossil v3 처치) — 단계 수 3은 인지 부하 본질로 유지, 시간축은 도메인별 조정 가능 (즉시/단기/중기 또는 사용자 정의)
+
+### Preserved (vibe-sunsang 정체성 — 모든 결정 contract 보존)
+- 6축 × 7단계 × 4유형 enum (측정 도구 재현성 본질)
+- Fit Score 공식 + 게이트 조건
+- TIMELINE.md 9 컬럼 schema
+- 0.5 단위 + 소수점 2자리 정확성
+- 자동 감지 & 개입 규칙 임계점 (멘토 본질)
 
 ## [2.0.0] - 2026-03-21
 
