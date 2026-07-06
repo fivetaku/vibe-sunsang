@@ -1,9 +1,9 @@
-[English](README.md) | 한국어
+[English](README.md) | 한국어 | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md)
 
 # vibe-sunsang (바선생)
 
 <p align="center">
-  <img src="assets/logo.jpeg" alt="vibe-sunsang" width="240">
+  <img src="assets/vibe-sunsang-hero-01.png" alt="vibe-sunsang" width="320">
 </p>
 
 > **Claude Code와 나눈 모든 대화를 성장 엔진으로 바꾸는 AI 멘토 에이전트.**
