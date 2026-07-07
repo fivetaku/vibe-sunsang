@@ -82,6 +82,27 @@ def load_project_names(names_file: Path) -> dict:
     return {}
 
 
+def _resolve_target(value: str, project_names: dict) -> str:
+    """--project 인자 해석: 원본 디렉토리명이면 그대로, 표시 이름이면 역매핑.
+
+    스킬은 INDEX.md의 표시 이름(예: budongsan_ai_book)을 넘기지만 변환기는
+    원본 디렉토리명(-Users-...-)을 기대한다. 이 불일치를 여기서 흡수한다.
+    """
+    # 이미 실제 디렉토리면 그대로
+    if (CLAUDE_PROJECTS_DIR / value).exists():
+        return value
+    # 명시 매핑(dir -> 표시이름)의 역방향 검색
+    for dir_name, display in project_names.items():
+        if display == value:
+            return dir_name
+    # 자동 생성 표시이름(get_project_name)과 매칭되는 디렉토리 검색
+    if CLAUDE_PROJECTS_DIR.exists():
+        for d in CLAUDE_PROJECTS_DIR.iterdir():
+            if d.is_dir() and get_project_name(d.name, project_names) == value:
+                return d.name
+    return value  # 못 찾으면 원본 유지 → 호출부에서 [SKIP] 처리
+
+
 def get_project_name(dir_name: str, project_names: dict) -> str:
     """프로젝트 디렉토리명을 사람이 읽기 좋은 이름으로 변환"""
     if dir_name in project_names:
@@ -470,6 +491,27 @@ def convert_project(
     return converted
 
 
+def _project_last_active(md_files) -> str | None:
+    """프로젝트 내 세션들의 frontmatter `end`(마지막 활동) 중 최대 날짜(YYYY-MM-DD)."""
+    latest = None
+    for md in md_files:
+        try:
+            with open(md, "r", encoding="utf-8") as f:
+                if f.readline().strip() != "---":
+                    continue
+                for line in f:
+                    if line.strip() == "---":
+                        break
+                    if line.startswith("end:"):
+                        day = line.split(":", 1)[1].strip()[:10]
+                        if day and (latest is None or day > latest):
+                            latest = day
+                        break
+        except OSError:
+            continue
+    return latest
+
+
 def generate_index(output_base: Path):
     """전체 인덱스 파일 생성"""
     if not output_base.exists():
@@ -491,22 +533,26 @@ def generate_index(output_base: Path):
             continue
         total_sessions += len(md_files)
 
-        # 날짜 범위 추출
+        # 시작일 범위(파일명) + 마지막 활동일(frontmatter end) 추출
         dates = [f.stem[:10] for f in md_files]
+        last_active = _project_last_active(md_files) or max(dates)
         project_stats.append({
             "name": project_dir.name,
             "count": len(md_files),
             "first": min(dates),
             "last": max(dates),
+            "last_active": last_active,
         })
 
     lines.append(f"**총 {total_sessions}개 세션** | {len(project_stats)}개 프로젝트\n")
-    lines.append("| 프로젝트 | 세션 수 | 기간 |")
-    lines.append("|----------|---------|------|")
+    lines.append("| 프로젝트 | 세션 수 | 기간 | 최근 활동 |")
+    lines.append("|----------|---------|------|----------|")
 
-    for stat in sorted(project_stats, key=lambda x: -x["count"]):
+    # 최근 활동 순으로 정렬 (범위 선택 시 '최근에 이어간' 프로젝트가 위로)
+    for stat in sorted(project_stats, key=lambda x: (x["last_active"], x["count"]), reverse=True):
         lines.append(
-            f"| [{stat['name']}](./{stat['name']}/) | {stat['count']} | {stat['first']} ~ {stat['last']} |"
+            f"| [{stat['name']}](./{stat['name']}/) | {stat['count']} | "
+            f"{stat['first']} ~ {stat['last']} | {stat['last_active']} |"
         )
 
     lines.append("\n---\n")
@@ -592,9 +638,9 @@ def main():
 
     # Build target list: --project flag, positional args, or all projects
     if args.project:
-        targets = [args.project]
+        targets = [_resolve_target(args.project, project_names)]
     elif args.projects:
-        targets = args.projects
+        targets = [_resolve_target(p, project_names) for p in args.projects]
     else:
         # 전체 프로젝트
         targets = [d.name for d in CLAUDE_PROJECTS_DIR.iterdir() if d.is_dir()]

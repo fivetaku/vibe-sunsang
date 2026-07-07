@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.2.0 — 2026-07-08
+
+시나리오 점검에서 드러난 "이어서 대화한 뒤 재분석이 번거롭다"는 핵심 불편을 해소.
+
+### Added
+- `scripts/ensure_workspace.py` — 워크스페이스 상태 자동 치유. v2 표준 디렉토리를 보장하고, v1 번호 접두사 구조(`40-conversations`/`90-exports`/`30-growth-log`)와 **`10-scripts/*.json` config**를 비파괴적으로 이관한다(기존 파일 미덮어씀). 구 onboard 마이그레이션이 config를 누락하던 유실 결함 수정.
+- `scripts/analysis_scope.py` — 증분 분석 워터마크. 세션 frontmatter `end`(마지막 활동) 기준으로 "지난 리뷰 이후 새/이어진 세션"을 계산(`--new`)하고, 분석 완료 시 워터마크를 전진(`--mark`)시킨다. `config/analysis_state.json`에 상태 저장.
+
+### Changed
+- **dead-end 제거**: retro/mentor/growth Step 0이 "설정 먼저 하세요"로 튕기지 않고 `ensure_workspace.py`로 자가 치유한다. `fresh`면 온보딩으로 자동 라우팅, `v1_migrated`면 이관 안내 후 계속.
+- **재분석 원터치**: mentor/growth 진입 시 증분 변환을 항상 자동 선행(별도 `변환` 실행 불필요). 기본 분석 범위가 "지난 리뷰 이후"로 바뀜.
+- **날짜 시맨틱을 '마지막 활동' 기준으로**: `convert_sessions.py` INDEX에 "최근 활동"(frontmatter `end`) 컬럼 추가 + 최근 활동 순 정렬. 오래전 시작해 최근 이어간 세션이 주간 리뷰에서 누락되던 문제 해소.
+- `convert_sessions.py --project`가 표시 이름(INDEX.md의 이름)도 허용 — 원본 디렉토리로 자동 역매핑. 스킬-스크립트 이름 체계 불일치 수정.
+- mentor: 세션 본문 통독 대신 frontmatter 지표 1차 스크리닝 → 필요한 구간만 부분 Read (컨텍스트 보호).
+- onboard: 디렉토리 생성/마이그레이션을 `ensure_workspace.py`에 위임(4개 스킬 중복 로직 단일화).
+
 ## 2.1.3 — 2026-06-21
 
 - The GitHub-star prompt is shown in the user's current language; on a fresh session with no language signal yet, it falls back to the language detected from your recent Claude sessions (else English).

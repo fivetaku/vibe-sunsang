@@ -35,23 +35,21 @@ description: Vibe-sunsang initial setup — guides through workspace creation, p
 - "새 프로젝트만 추가" → 기존 config 파일을 읽어 매핑된 프로젝트를 건너뛰고 새 프로젝트만 진행
 - "처음부터 다시" → 기존 config 파일을 백업(`*.bak`) 후 새로 생성
 
-**존재하지 않는 경우:**
+**존재하지 않거나 v1 구조인 경우 — 디렉토리 생성/마이그레이션은 스크립트에 위임:**
 
 ```bash
-mkdir -p "$HOME/vibe-sunsang/config" "$HOME/vibe-sunsang/conversations" "$HOME/vibe-sunsang/exports" "$HOME/vibe-sunsang/growth-log/weekly"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/ensure_workspace.py" 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/ensure_workspace.py"
 ```
+
+이 스크립트가 `config/ conversations/ exports/ growth-log/weekly/`를 보장하고, v1 번호 접두사 구조(`40-conversations`, `90-exports`, `30-growth-log`, **그리고 `10-scripts/*.json` config**)를 **비파괴적으로** 새 구조로 이관한다. 출력 `STATUS v1_migrated`면 다음과 같이 안내한다:
+
+> "이전 버전의 폴더 구조를 감지해 데이터(대화·리포트·성장로그·설정)를 새 구조로 자동 이관했습니다. 기존 파일은 덮어쓰지 않았어요."
+
+`00-system/`, `20-knowledge-base/`, `.claude/` 등 나머지 v1 잔여물은 데이터가 아니므로 그대로 두거나, 사용자가 원하면 정리하도록 안내만 한다(자동 삭제 금지).
 
 ### Step 0.5: 워크스페이스 환경 구성
 
-**마이그레이션 감지:** `$HOME/vibe-sunsang/` 안에 번호 접두사 디렉토리(`10-`, `20-`, `30-`, `40-`, `90-` 등)가 존재하면 v1.3.x 이전 구조로 판단하고, 사용자에게 안내한다:
-
-> "이전 버전의 폴더 구조가 감지되었습니다. 플러그인이 업데이트되어 더 이상 워크스페이스에 로컬 명령/스킬 파일이 필요하지 않습니다. 기존 데이터는 그대로 유지되며, 새 구조로 자동 전환됩니다."
-
-마이그레이션이 필요한 경우:
-- `40-conversations/` → `conversations/` (기존 conversations/가 비어있으면 이동, 아니면 병합)
-- `90-exports/` → `exports/` (동일)
-- `30-growth-log/` → `growth-log/` (동일)
-- `.claude/`, `10-scripts/`, `20-knowledge-base/`, `00-system/` → 삭제 안내 (사용자 확인 후)
+> 디렉토리 생성·마이그레이션은 Step 0의 `ensure_workspace.py`가 이미 끝냈다. 아래는 나머지 초기화만 수행한다.
 
 **CLAUDE.md 생성:**
 

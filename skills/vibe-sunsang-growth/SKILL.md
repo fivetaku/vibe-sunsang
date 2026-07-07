@@ -22,18 +22,34 @@ description: Growth report generator — analyzes AI-collaboration session data 
 이 스킬은 대량의 세션 파일을 분석해야 하므로, **메인 컨텍스트를 보호**하기 위해
 `vibe-sunsang:growth-analyst` 서브에이전트에게 작업을 위임합니다.
 
-### Step 0: 사전 확인
+### Step 0: 워크스페이스 자동 치유 (dead-end 방지)
 
-`"$HOME/vibe-sunsang/config/workspace_types.json"` 파일이 있는지 확인합니다.
+파일 존재만 확인하고 튕기지 않는다. 다음으로 워크스페이스를 스스로 준비한다:
 
-없으면:
-> "아직 바선생 초기 설정이 되지 않았어요. `/vibe-sunsang 시작`을 먼저 실행해주세요."
-> → 여기서 종료
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/ensure_workspace.py" 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/ensure_workspace.py"
+```
+
+출력 마지막 줄 `STATUS ...  CONFIG <present|absent>`로 분기:
+
+- `v1_migrated` → "이전 버전 데이터를 새 구조로 옮겼어요." 한 줄 안내 후 계속.
+- `CONFIG absent` (fresh) → "처음이시네요 — 바로 준비할게요!" 후 **vibe-sunsang-onboard로 넘긴다**. 여기서 종료하지 말 것.
+- 그 외 → 다음 단계.
 
 ### Step 1: 범위 선택
 
-사용자의 요청에 범위가 명시되어 있으면 그대로 사용합니다.
-**범위가 없으면 EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
+**기본은 "지난 리뷰 이후"다.** 먼저 증분 범위를 계산해 사용자에게 무엇이 새로 생겼는지 보여준다:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/analysis_scope.py" --new 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/analysis_scope.py" --new
+```
+
+마지막 줄 `SUMMARY total=.. matched=.. new=.. continued=.. watermark=..`를 읽는다.
+
+- `watermark=none`(첫 리뷰)이거나 사용자가 명시적으로 범위를 말한 경우 → 아래 AskUserQuestion으로 범위를 고르게 한다.
+- 그 외 → "지난 리뷰({watermark}) 이후 **새 세션 {new}개, 이어서 진행한 세션 {continued}개**가 있어요. 이걸 바로 분석할까요, 아니면 다른 범위로 볼까요?" 라고 안내한 뒤, 사용자가 다른 범위를 원하지 않으면 **증분 범위(analysis_scope가 출력한 md 경로 목록)를 그대로 분석 대상으로 삼는다.** `matched=0`이면 "지난 리뷰 이후 새로 이어간 대화가 없어요. 전체 기간으로 볼까요?"로 안내.
+
+**사용자가 다른 범위를 원하거나 첫 리뷰면 EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
 
 ```json
 {
@@ -61,15 +77,15 @@ description: Growth report generator — analyzes AI-collaboration session data 
 - 기간 기반 분석 → 포함된 프로젝트들의 유형 목록 수집
 - 유형이 등록되지 않은 프로젝트 → `default_type` (builder) 사용
 
-### Step 3: 변환 확인
+### Step 3: 증분 변환 (항상 자동 선행)
 
-서브에이전트에 위임하기 전, 최신 데이터가 있는지 확인합니다:
+별도 `변환` 실행을 요구하지 않는다. 위임 직전 **항상** 증분 변환을 돌려 이어서 진행한 대화까지 최신화한다(증분이라 이미 최신이면 즉시 끝난다):
 
-1. `"$HOME/vibe-sunsang/conversations/INDEX.md"`를 확인
-2. 필요하면 변환 스크립트를 먼저 실행:
-   ```bash
-   python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file "$HOME/vibe-sunsang/config/project_names.json" --output-dir "$HOME/vibe-sunsang/conversations" 2>/dev/null || python ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file "$HOME/vibe-sunsang/config/project_names.json" --output-dir "$HOME/vibe-sunsang/conversations"
-   ```
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file "$HOME/vibe-sunsang/config/project_names.json" --output-dir "$HOME/vibe-sunsang/conversations" 2>/dev/null || python ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file "$HOME/vibe-sunsang/config/project_names.json" --output-dir "$HOME/vibe-sunsang/conversations"
+```
+
+> Step 1에서 증분 범위를 이미 계산했다면, 변환 후 새로 이어진 세션이 반영됐을 수 있으니 `analysis_scope.py --new`를 한 번 더 돌려 최종 대상 목록을 확정한다.
 
 ### Step 4: Subagent 위임
 
@@ -83,6 +99,7 @@ Task(
   subagent_type="vibe-sunsang:growth-analyst",
   prompt="성장 리포트를 생성해주세요.
          범위: [파악한 범위].
+         [증분 분석인 경우] 분석 대상 세션 파일 목록(analysis_scope --new 출력): [md 경로 목록을 그대로 전달]. 이 목록에 있는 세션만 읽어 분석하세요.
          워크스페이스 유형: [workspace_types.json에서 파악한 유형 정보].
          유형별 지식 베이스 경로: ${CLAUDE_PLUGIN_ROOT}/skills/vibe-sunsang-knowledge/references/{type}/.
          공통 지식 베이스: ${CLAUDE_PLUGIN_ROOT}/skills/vibe-sunsang-knowledge/references/common/.
@@ -138,6 +155,16 @@ Task(
    - "가장 크게 성장한 축: [축명] (X.X → Y.Y)"
    - "해소된 안티패턴: [목록]"
    - "다음 레벨까지: [게이트 조건 또는 약한 축]"
+
+### Step 7: 분석 워터마크 갱신
+
+리포트가 정상 저장되면 **반드시** 워터마크를 전진시켜, 다음 리뷰가 "이번에 본 것 이후"만 잡도록 한다:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/analysis_scope.py" --new --mark 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/analysis_scope.py" --new --mark
+```
+
+> 리포트 저장에 실패했다면 갱신하지 않는다(다음 실행에서 다시 잡히도록). 사용자가 "전체" 등 임의 범위를 강제한 경우에도 워터마크는 최신 활동 기준으로 전진한다.
 
 ### Gotchas
 

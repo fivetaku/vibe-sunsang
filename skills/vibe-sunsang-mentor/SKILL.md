@@ -64,6 +64,25 @@ description: AI-collaboration mentoring — coaches users on request quality, an
 
 ## 실행 흐름
 
+### Step 0-pre: 워크스페이스 자동 치유 (dead-end 방지)
+
+유형 확인 전에 먼저 워크스페이스를 스스로 준비한다:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/ensure_workspace.py" 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/ensure_workspace.py"
+```
+
+`STATUS ...  CONFIG <present|absent>` 마지막 줄로 분기:
+- `v1_migrated` → "이전 버전 데이터를 새 구조로 옮겼어요." 한 줄 안내 후 계속.
+- `CONFIG absent` (fresh) → "처음이시네요 — 바로 준비할게요!" 후 **vibe-sunsang-onboard로 넘긴다**. 종료하지 말 것.
+- 그 외 → 계속.
+
+그리고 **증분 변환을 자동 선행**한다(별도 `변환` 실행 불필요, 이어서 진행한 대화까지 반영):
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file "$HOME/vibe-sunsang/config/project_names.json" --output-dir "$HOME/vibe-sunsang/conversations" 2>/dev/null || python ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file "$HOME/vibe-sunsang/config/project_names.json" --output-dir "$HOME/vibe-sunsang/conversations"
+```
+
 ### Step 0: 워크스페이스 유형 확인
 
 **모든 분석 전에 먼저 유형을 확인합니다:**
@@ -88,9 +107,7 @@ description: AI-collaboration mentoring — coaches users on request quality, an
 }
 ```
 
-**파일 자체가 없으면:**
-> "아직 바선생 초기 설정이 되지 않았어요. `/vibe-sunsang 시작`을 먼저 실행해주세요."
-> → 여기서 종료
+**유형이 없거나 파일이 비어 있으면** 위 AskUserQuestion으로 이 프로젝트 유형만 즉석에서 물어 진행한다(전체 재온보딩을 강요하지 않는다). Step 0-pre에서 `fresh`로 판정돼 이미 온보딩으로 넘겼다면 이 단계는 오지 않는다.
 
 **유형에 따라 지식 베이스 경로가 결정됩니다:**
 
@@ -135,13 +152,16 @@ description: AI-collaboration mentoring — coaches users on request quality, an
 
 `{type}`은 Step 0에서 확인한 워크스페이스 유형입니다.
 
-### Step 3: 세션 데이터 수집
+### Step 3: 세션 데이터 수집 (증분 우선 + 컨텍스트 보호)
 
-1. `"$HOME/vibe-sunsang/conversations/INDEX.md"`를 읽어 최신 상태 확인
-2. 모드에 따라 적절한 범위의 세션 파일 로딩:
-   - 모드 A, B: 최근 3~5개 세션
-   - 모드 C: 사용자가 지정한 세션 또는 최근 1개
-   - 모드 D: 최근 5~10개 세션
+1. `"$HOME/vibe-sunsang/conversations/INDEX.md"`를 읽어 최신 상태(프로젝트별 **최근 활동** 컬럼) 확인
+2. **기본은 "지난 리뷰 이후"다.** 증분 범위를 계산한다:
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/analysis_scope.py" --new 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/analysis_scope.py" --new
+   ```
+   - `matched>0` → 그 md 목록을 우선 대상으로 삼는다("지난 리뷰 이후 새 세션 {new}개, 이어간 세션 {continued}개를 봤어요").
+   - `matched=0` 또는 `watermark=none`(첫 리뷰) → 모드별 최근 창으로 폴백: 모드 A·B 최근 3~5개, 모드 C 지정/최근 1개, 모드 D 최근 5~10개.
+3. **컨텍스트 보호**: 세션 본문을 통째로 읽지 말고, 먼저 각 md **frontmatter 지표**(user_turn_count, tool_error_count, has_orchestration, thinking_turn_ratio, bypass_permission_ratio 등 변환기가 이미 계산해 둔 값)로 1차 스크리닝한 뒤, 근거 인용이 필요한 세션만 해당 구간을 부분 Read 한다.
 
 ### Step 4: 분석 실행
 

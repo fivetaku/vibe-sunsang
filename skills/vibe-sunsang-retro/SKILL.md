@@ -10,13 +10,19 @@ description: Conversation-log converter — transforms Claude Code JSONL logs in
 
 인자: $ARGUMENTS
 
-### Step 0: 사전 확인
+### Step 0: 워크스페이스 자동 치유 (dead-end 방지)
 
-`"$HOME/vibe-sunsang/config/project_names.json"` 파일이 있는지 확인합니다.
+파일 존재만 확인하고 튕기지 않는다. 다음을 실행해 워크스페이스를 스스로 준비한다:
 
-없으면:
-> "아직 바선생 초기 설정이 되지 않았어요. `/vibe-sunsang 시작`을 먼저 실행해주세요."
-> → 여기서 종료
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/ensure_workspace.py" 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/ensure_workspace.py"
+```
+
+출력 마지막 줄 `STATUS <fresh|v2|v1_migrated>  CONFIG <present|absent>`로 분기한다:
+
+- `v1_migrated` → "이전 버전 데이터를 새 구조로 옮겼어요." 한 줄만 안내하고 계속 진행한다.
+- `CONFIG absent` (fresh) → 아직 초기 설정 전이다. "처음이시네요 — 바로 준비할게요!" 안내 후 **vibe-sunsang-onboard로 넘긴다** (자동 이름/기본 유형 lazy 온보딩 가능). 여기서 종료하지 말 것.
+- 그 외(`v2`, `CONFIG present`) → 그대로 다음 단계.
 
 ### Step 1: 변환 스크립트 실행
 
