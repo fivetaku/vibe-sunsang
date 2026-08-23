@@ -1,5 +1,10 @@
 # Changelog
 
+
+## 2.2.1 — 2026-08-24
+
+- **Fix: first-run setup could wipe `settings.json`** — if the file was corrupted or contained comments (JSONC), the shared update-notifier installer re-wrote it as an empty object plus the hook, silently destroying all user settings. It now refuses to write when parsing fails and writes atomically (tmp + rename). Marketplace-wide propagation of the fix found in the ddiring v0.1.1 external review; reproduction-verified.
+
 ## 2.2.0 — 2026-07-08
 
 시나리오 점검에서 드러난 "이어서 대화한 뒤 재분석이 번거롭다"는 핵심 불편을 해소.
