@@ -54,7 +54,45 @@ description: Vibe-sunsang knowledge base — answers questions about the level s
 
 ### Step 1: 개념 선택
 
-사용자의 질문에서 관련 주제를 파악합니다. 질문이 모호하면 **EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
+사용자의 질문에서 관련 주제를 파악합니다. 질문이 모호하면 두 단계 질문으로 좁혀갑니다.
+
+먼저 **EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출해 주제 묶음을 묻습니다:
+
+```json
+{
+  "questions": [{
+    "question": "어떤 주제에 대해 알고 싶으신가요?",
+    "header": "주제 선택",
+    "options": [
+      {"label": "레벨·평가", "description": "레벨 시스템, 6축 기술 차원, 워크스페이스 유형, 성장 지표"},
+      {"label": "활용·습관", "description": "안티패턴, 요청 품질, 멘토링 방법"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+그 다음, 선택된 묶음에 맞는 아래 JSON 중 하나로 AskUserQuestion 도구를 한 번 더 호출해 개념을 묻습니다 (**EXECUTE:** 선택된 묶음의 JSON 하나만 호출).
+
+`레벨·평가`를 선택한 경우:
+
+```json
+{
+  "questions": [{
+    "question": "어떤 개념에 대해 알고 싶으신가요?",
+    "header": "개념 선택",
+    "options": [
+      {"label": "레벨 시스템", "description": "v2: 7단계(0.5 단위) 성장 레벨과 각 단계의 특징"},
+      {"label": "6축 기술 차원", "description": "DECOMP/VERIFY/ORCH/FAIL/CTX/META 6가지 평가 축"},
+      {"label": "워크스페이스 유형", "description": "Builder/Explorer/Designer/Operator 유형 설명"},
+      {"label": "성장 지표", "description": "유형별 성장을 측정하는 기준과 Fit Score"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+`활용·습관`을 선택한 경우:
 
 ```json
 {
@@ -63,11 +101,7 @@ description: Vibe-sunsang knowledge base — answers questions about the level s
     "header": "개념 선택",
     "options": [
       {"label": "안티패턴", "description": "AI 활용 시 피해야 할 나쁜 습관들"},
-      {"label": "레벨 시스템", "description": "v2: 7단계(0.5 단위) 성장 레벨과 각 단계의 특징"},
-      {"label": "6축 기술 차원", "description": "DECOMP/VERIFY/ORCH/FAIL/CTX/META 6가지 평가 축"},
-      {"label": "워크스페이스 유형", "description": "Builder/Explorer/Designer/Operator 유형 설명"},
       {"label": "요청 품질", "description": "AI에게 좋은 요청을 하는 방법"},
-      {"label": "성장 지표", "description": "유형별 성장을 측정하는 기준과 Fit Score"},
       {"label": "멘토링 방법", "description": "효과적인 AI 활용 멘토링/코칭 방법"}
     ],
     "multiSelect": false

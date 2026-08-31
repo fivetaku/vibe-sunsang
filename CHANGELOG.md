@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.3.0 — 2026-09-01
+
+- **Growth reports lead with one verdict and a to-do list.** The report now opens with a single level headline (`## L3.5 <level name>`, or `L3.0 → L3.5` when a prior report exists) followed by a flat `다음 한 수` list of at most three concrete actions, weakest axis first. Everything that justifies the verdict — six-axis scores, internal score, weights, Fit Score and gate arithmetic, radar chart — stays in the report file below, and is only spoken aloud when the user asks ("왜 그 레벨이야", "6축 보여줘").
+- Chat output follows the same discipline: headline, next moves, file path. No re-printing the report body, no separate longitudinal summary block — level change is carried by the headline itself.
+- Rationale: a growth report is read for "where am I and what do I do next", and six axes of scores ahead of that answer buried it.
+
 
 ## 2.2.1 — 2026-08-24
 

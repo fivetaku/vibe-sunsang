@@ -45,9 +45,24 @@ AI 활용 성장을 돕는 멘토 에이전트. 인자에 따라 적절한 스�
     "header": "바선생",
     "options": [
       {"label": "시작", "description": "초기 설정 (프로젝트 매핑, 워크스페이스 유형 분류, 첫 변환) — 처음 한 번만 하면 돼요"},
-      {"label": "변환", "description": "이번 주 대화 로그를 Markdown으로 변환하고 분석 가이드를 제공해요"},
       {"label": "멘토링", "description": "AI 활용 능력 코칭 — 요청 품질, 안티패턴, 개념 학습, 종합 코칭 4가지 모드"},
       {"label": "성장", "description": "AI 활용 세션 데이터를 분석해서 성장 리포트를 자동 생성해요"},
+      {"label": "기타 (변환·지식)", "description": "대화 로그 변환 또는 개념/용어 학습 — 다음 단계에서 하나를 골라요"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+`기타 (변환·지식)`을 선택한 경우에만 **EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 한 번 더 호출한다:
+
+```json
+{
+  "questions": [{
+    "question": "둘 중에 뭘 도와드릴까요?",
+    "header": "바선생",
+    "options": [
+      {"label": "변환", "description": "이번 주 대화 로그를 Markdown으로 변환하고 분석 가이드를 제공해요"},
       {"label": "지식", "description": "바선생의 레벨 시스템, 안티패턴, 워크스페이스 유형 등 개념을 학습해요"}
     ],
     "multiSelect": false
