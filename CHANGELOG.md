@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.3.1 — 2026-10-13
+- **Routed through gptaku-core.** Declares `gptaku-core` as a dependency and adds `routing.json`, so requests that match this plugin's skills are pointed to them before Claude handles the work itself or reaches for native tools. Existing users: run `/reload-plugins` after updating, or reinstall the plugin, so gptaku-core gets installed. Opt out with `GPTAKU_ROUTER=off`.
+
 ## 2.3.0 — 2026-09-01
 
 - **Growth reports lead with one verdict and a to-do list.** The report now opens with a single level headline (`## L3.5 <level name>`, or `L3.0 → L3.5` when a prior report exists) followed by a flat `다음 한 수` list of at most three concrete actions, weakest axis first. Everything that justifies the verdict — six-axis scores, internal score, weights, Fit Score and gate arithmetic, radar chart — stays in the report file below, and is only spoken aloud when the user asks ("왜 그 레벨이야", "6축 보여줘").
