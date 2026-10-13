@@ -1,0 +1,66 @@
+{
+  "routes": [
+    {
+      "skill": "vibe-sunsang:vibe-sunsang-growth",
+      "when": "AI 활용 성장 리포트·레벨 분석을 원할 때",
+      "priority": 20,
+      "keywords": [
+        "성장 리포트",
+        "성장 분석",
+        "얼마나 성장",
+        "레벨 체크",
+        "성장 트래킹",
+        "growth report"
+      ]
+    },
+    {
+      "skill": "vibe-sunsang:vibe-sunsang-mentor",
+      "when": "AI에게 요청하는 방식에 대한 코칭·멘토링을 원할 때",
+      "priority": 20,
+      "keywords": [
+        "멘토링해",
+        "코칭해",
+        "요청 코칭",
+        "요청하는 방식",
+        "어떻게 요청하면",
+        "뭘 잘못하고"
+      ]
+    },
+    {
+      "skill": "vibe-sunsang:vibe-sunsang",
+      "when": "바선생 기능 전반을 쓸 때",
+      "priority": 5,
+      "keywords": [],
+      "weak": [
+        "바선생",
+        "vibe-sunsang"
+      ],
+      "context": [
+        "해줘",
+        "해 줘",
+        "해라",
+        "해봐",
+        "돌려",
+        "써서",
+        "시켜",
+        "호출",
+        "로 해",
+        "으로 해",
+        "부탁"
+      ],
+      "weak_exclude": [
+        "수정했",
+        "수정해",
+        "개선",
+        "업데이트",
+        "배포",
+        "플러그인",
+        "버전",
+        "재검토",
+        "코드",
+        "테스트해봤",
+        "동작한"
+      ]
+    }
+  ]
+}
