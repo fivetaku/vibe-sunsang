@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.0 — 2026-11-22
+- Growth rubric rewards done criteria, executed verification, /goal/Workflow/plan mode
+- Bypass ratio no longer rewarded
+- Deterministic fit_score.py
+
 ## 2.3.2 — 2026-10-14
 - **gptaku-core routing tuned.** Adjusted keywords and exclusions in `routing.json` against false matches found in real conversations. Takes effect together with gptaku-core 0.1.1.
 
