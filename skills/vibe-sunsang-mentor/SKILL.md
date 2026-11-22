@@ -41,14 +41,7 @@ description: AI-collaboration mentoring — coaches users on request quality, an
 
 ### 유형별 동적 가중치 (모드 D 전용)
 
-| 기술 차원 | Builder | Explorer | Designer | Operator |
-|----------|---------|----------|----------|----------|
-| **DECOMP** | **25%** | 15% | 20% | 15% |
-| **VERIFY** | **25%** | 15% | 15% | 20% |
-| **ORCH** | 15% | 10% | 10% | **25%** |
-| **FAIL** | 15% | **20%** | 10% | **20%** |
-| **CTX** | 10% | **20%** | **25%** | 10% |
-| **META** | 10% | **20%** | **20%** | 10% |
+정본은 `${CLAUDE_PLUGIN_ROOT}/skills/vibe-sunsang-knowledge/references/common/weights.md` 하나다. 표를 여기에 복사하지 않는다. 수치가 필요하면 그 파일을 읽거나 `scripts/fit_score.py`로 계산한다.
 
 ### 4유형별 레벨명 테이블 (7단계)
 
@@ -161,7 +154,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/convert_sessions.py --names-file "$HOME/vi
    ```
    - `matched>0` → 그 md 목록을 우선 대상으로 삼는다("지난 리뷰 이후 새 세션 {new}개, 이어간 세션 {continued}개를 봤어요").
    - `matched=0` 또는 `watermark=none`(첫 리뷰) → 모드별 최근 창으로 폴백: 모드 A·B 최근 3~5개, 모드 C 지정/최근 1개, 모드 D 최근 5~10개.
-3. **컨텍스트 보호**: 세션 본문을 통째로 읽지 말고, 먼저 각 md **frontmatter 지표**(user_turn_count, tool_error_count, has_orchestration, thinking_turn_ratio, bypass_permission_ratio 등 변환기가 이미 계산해 둔 값)로 1차 스크리닝한 뒤, 근거 인용이 필요한 세션만 해당 구간을 부분 Read 한다.
+3. **컨텍스트 보호**: 세션 본문을 통째로 읽지 말고, 먼저 각 md **frontmatter 지표**(user_turn_count, tool_error_count, has_orchestration, thinking_turn_ratio, verify_cmd_count, done_criteria_count, delegation_total 등 변환기가 이미 계산해 둔 값)로 1차 스크리닝한 뒤, 근거 인용이 필요한 세션만 해당 구간을 부분 Read 한다.
 
 ### Step 4: 분석 실행
 

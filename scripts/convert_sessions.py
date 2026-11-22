@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import platform
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -69,6 +70,100 @@ TOOL_FORMATTERS = {
     "WebFetch":  lambda i: f"*[Tool: WebFetch → `{i.get('url', '?')}`]*",
     "Task":      lambda i: f"*[Tool: Task → `{i.get('description', '?')}`]*",
 }
+
+
+# --- v2.4 성장 신호 정의 ---------------------------------------------------
+# 위임형(에이전트 시대) 사용 습관을 잡는다. 도구 다양성·권한 생략 비율은
+# 에이전트가 고른 결과라 사용자 기술 신호로 쓰지 않는다.
+ORCH_TOOLS = {"Task", "Agent", "SendMessage"}  # 서브에이전트 위임
+SIGNAL_KEYS = (
+    "verify_cmd_count",        # 에이전트가 실제로 돌린 test/build/lint/typecheck 명령 수
+    "done_criteria_count",     # 사용자가 완료·수용 기준을 말한 발화 수
+    "goal_count",              # /goal 실행 수
+    "goal_status_count",       # Goal set/진행 상태 엔트리 수
+    "skill_count",             # Skill 도구 호출 + 사용자 슬래시 스킬 호출 수
+    "workflow_count",          # Workflow 도구 호출 수
+    "plan_mode_count",         # EnterPlanMode/ExitPlanMode 호출 + plan 권한 모드 엔트리
+    "worktree_count",          # EnterWorktree 또는 isolation=worktree 위임
+    "hook_event_count",        # 훅 실행 흔적(hook_* attachment, stop_hook_summary)
+    "compact_manual_count",    # 사용자가 직접 실행한 /compact (compact_boundary trigger=manual)
+    "session_split_count",     # /clear 로 맥락 끊기
+    "handoff_count",           # 인계 문서·핸드오프 요청 발화 수
+)
+DELEGATION_KEYS = ("goal_count", "skill_count", "workflow_count", "plan_mode_count", "worktree_count")
+
+_VERIFY_CMD_RE = re.compile(
+    r"(?:^|[\s;&|(])(?:pytest|py\.test|tox|nox|unittest|jest|vitest|mocha|playwright\s+test|"
+    r"go\s+test|cargo\s+(?:test|build|clippy|check)|tsc|mypy|pyright|ruff|eslint|flake8|pylint|"
+    r"(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?(?:test|build|lint|typecheck|check)|make(?:\s+-j\S*)?\s+(?:test|check|build|lint)|"
+    r"gradle\w*\s+(?:test|build)|mvn\s+(?:test|verify|package)|dotnet\s+(?:test|build)|swift\s+(?:test|build)|"
+    r"xcodebuild|validate\w*\.py|test_\w+\.py)\b",
+    re.IGNORECASE,
+)
+_DONE_CRITERIA_RE = re.compile(
+    r"완료\s*(?:기준|조건)|수용\s*기준|합격\s*(?:기준|선)|끝(?:난|나는)\s*(?:기준|조건)|done\s+(?:criteria|when)|"
+    r"definition\s+of\s+done|acceptance\s+criteria|success\s+criteria|통과(?:하면|해야|가\s*완료)",
+    re.IGNORECASE,
+)
+_HANDOFF_RE = re.compile(r"handoff|핸드오프|인계|HANDOFF\.md|이어서\s*(?:갈|할)|다음\s*세션", re.IGNORECASE)
+_CMD_NAME_RE = re.compile(r"<command-name>/?([\w:.-]+)</command-name>")
+_BUILTIN_CMDS = {
+    "goal", "compact", "clear", "rewind", "resume", "model", "config", "help", "login", "logout",
+    "plugin", "plugins", "reload-plugins", "mcp", "status", "cost", "usage", "memory", "init",
+    "tui", "effort", "permissions", "agents", "hooks", "doctor", "exit", "context", "export",
+}
+
+
+def _user_text(content) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(
+            b.get("text", "") for b in content
+            if isinstance(b, dict) and b.get("type") == "text"
+        )
+    return ""
+
+
+def _scan_user_text(text: str, sig: dict) -> None:
+    """사용자 발화에서 /goal·슬래시 스킬·/compact·/clear·완료 기준·인계 신호를 센다."""
+    if not text.strip():
+        return
+    names = _CMD_NAME_RE.findall(text)
+    stripped = text.lstrip()
+    if not names and stripped.startswith("/"):
+        names = [stripped[1:].split(None, 1)[0]] if len(stripped) > 1 else []
+    for name in names:
+        if name == "goal":
+            sig["goal_count"] += 1
+        elif name == "clear":
+            sig["session_split_count"] += 1
+        elif name == "compact":
+            pass  # compact_boundary(trigger=manual)로 센다 — 이중 집계 방지
+        elif name not in _BUILTIN_CMDS:
+            sig["skill_count"] += 1
+    if text.startswith("<local-command") or text.startswith("<command-message"):
+        return
+    if _DONE_CRITERIA_RE.search(text):
+        sig["done_criteria_count"] += 1
+    if _HANDOFF_RE.search(text):
+        sig["handoff_count"] += 1
+
+
+def _scan_tool_use(name: str, tool_input: dict, sig: dict) -> None:
+    """assistant tool_use 블록에서 검증 실행·위임 신호를 센다."""
+    if name == "Bash" and _VERIFY_CMD_RE.search(str(tool_input.get("command", ""))):
+        sig["verify_cmd_count"] += 1
+    elif name == "Skill":
+        sig["skill_count"] += 1
+    elif name == "Workflow":
+        sig["workflow_count"] += 1
+    elif name in ("EnterPlanMode", "ExitPlanMode"):
+        sig["plan_mode_count"] += 1
+    elif name == "EnterWorktree":
+        sig["worktree_count"] += 1
+    if tool_input.get("isolation") == "worktree" and name != "EnterWorktree":
+        sig["worktree_count"] += 1
 
 
 def load_project_names(names_file: Path) -> dict:
@@ -202,12 +297,11 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
     }
 
     # --- v2 P0 지표 수집용 카운터 ---
-    ORCH_TOOLS = {"Task", "Agent", "SendMessage"}  # 오케스트레이션 도구 목록
     user_msg_lengths = []      # 실제 사용자 메시지(string content)의 글자 수 리스트
     user_turn_count = 0        # tool_result 제외 사용자 발화 턴 수
-    bypass_count = 0           # bypassPermissions 엔트리 수
-    total_entry_count = 0      # 전체 엔트리 수 (bypass 비율 계산용)
-    orch_tool_count = 0        # 오케스트레이션 도구 호출 횟수
+    total_entry_count = 0      # 전체 엔트리 수
+    orch_tool_count = 0        # 위임 도구 호출 횟수 (ORCH_TOOLS)
+    sig = {k: 0 for k in SIGNAL_KEYS}  # v2.4 신호 (검증 실행·완료 기준·위임·맥락 위생)
     tool_error_count = 0       # is_error=True인 도구 결과 수
     compact_boundary_count = 0 # compact_boundary 시스템 엔트리 수
     assistant_turn_count = 0   # assistant 메시지 총 수
@@ -238,13 +332,26 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
             if entry.get("cwd"):
                 metadata["cwd"] = entry["cwd"]
 
-            # P0: bypass_permission — permissionMode 확인
-            if entry.get("permissionMode") == "bypassPermissions":
-                bypass_count += 1
+            # 권한 확인 생략(bypassPermissions)은 성장 신호가 아니므로 집계하지 않는다.
+            if entry.get("permissionMode") == "plan":
+                sig["plan_mode_count"] += 1
 
-            # P0: compact_boundary — system subtype 확인
+            # P0: compact_boundary — system subtype 확인 (+ 수동/자동 구분)
             if entry_type == "system" and entry.get("subtype") == "compact_boundary":
                 compact_boundary_count += 1
+                trigger = (entry.get("compactMetadata") or {}).get("trigger")
+                if trigger == "manual":
+                    sig["compact_manual_count"] += 1
+
+            # /goal 진행 상태(Goal set) · 훅 실행 흔적 — message가 없는 엔트리
+            if entry_type == "attachment":
+                att_type = (entry.get("attachment") or {}).get("type", "")
+                if att_type == "goal_status":
+                    sig["goal_status_count"] += 1
+                elif att_type.startswith("hook_"):
+                    sig["hook_event_count"] += 1
+            if entry_type == "system" and entry.get("subtype") == "stop_hook_summary":
+                sig["hook_event_count"] += 1
 
             msg = entry.get("message", {})
             role = msg.get("role", entry_type)
@@ -274,6 +381,7 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
                     for item in content:
                         if isinstance(item, dict) and item.get("is_error"):
                             tool_error_count += 1
+                _scan_user_text(_user_text(content), sig)
 
             # --- assistant 메시지: 오케스트레이션 도구 + thinking 블록 ---
             if role == "assistant" and isinstance(content, list):
@@ -286,6 +394,7 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
                             tool_name = block.get("name", "")
                             if tool_name in ORCH_TOOLS:
                                 orch_tool_count += 1
+                            _scan_tool_use(tool_name, block.get("input") or {}, sig)
                         # P0: thinking 블록 감지
                         if block.get("type") == "thinking":
                             has_thinking = True
@@ -327,12 +436,10 @@ def convert_session(jsonl_path: Path, verbose: bool = False) -> dict:
         if user_msg_lengths else 0
     )
     metadata["user_turn_count"] = user_turn_count
-    metadata["bypass_permission_ratio"] = (
-        round(bypass_count / total_entry_count, 2)
-        if total_entry_count > 0 else 0.0
-    )
-    metadata["has_orchestration"] = orch_tool_count > 0
     metadata["orch_tool_count"] = orch_tool_count
+    metadata.update(sig)
+    metadata["delegation_total"] = orch_tool_count + sum(sig[k] for k in DELEGATION_KEYS)
+    metadata["has_orchestration"] = metadata["delegation_total"] > 0
     metadata["tool_error_count"] = tool_error_count
     metadata["compact_boundaries"] = compact_boundary_count
     metadata["thinking_turn_ratio"] = (
@@ -390,12 +497,15 @@ def session_to_markdown(session_data: dict, project_name: str) -> str:
     # v2 P0 지표
     lines.append(f"avg_user_msg_len: {meta['avg_user_msg_len']}")
     lines.append(f"user_turn_count: {meta['user_turn_count']}")
-    lines.append(f"bypass_permission_ratio: {meta['bypass_permission_ratio']}")
     lines.append(f"has_orchestration: {str(meta['has_orchestration']).lower()}")
     lines.append(f"orch_tool_count: {meta['orch_tool_count']}")
     lines.append(f"tool_error_count: {meta['tool_error_count']}")
     lines.append(f"compact_boundaries: {meta['compact_boundaries']}")
     lines.append(f"thinking_turn_ratio: {meta['thinking_turn_ratio']}")
+    # v2.4 신호: 검증 실행·완료 기준·위임(스킬/워크플로/골/플랜/워크트리/훅)·맥락 위생
+    for key in SIGNAL_KEYS:
+        lines.append(f"{key}: {meta[key]}")
+    lines.append(f"delegation_total: {meta['delegation_total']}")
     lines.append("---")
     lines.append("")
 
@@ -417,6 +527,20 @@ def session_to_markdown(session_data: dict, project_name: str) -> str:
         lines.append("")
 
     return "\n".join(lines)
+
+
+def _has_current_schema(md_path: Path) -> bool:
+    """v2.4 신호가 없는 옛 변환본이면 False → 증분 모드에서도 다시 변환한다."""
+    try:
+        with open(md_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("delegation_total:"):
+                    return True
+                if line.startswith("# "):
+                    return False
+    except OSError:
+        pass
+    return False
 
 
 def _find_existing_output(output_dir: Path, short_id: str) -> Path | None:
@@ -458,7 +582,8 @@ def convert_project(
             # Incremental conversion: skip if output already exists and is up-to-date
             if not force and output_dir.exists():
                 existing = _find_existing_output(output_dir, short_id)
-                if existing and existing.stat().st_mtime >= jsonl_file.stat().st_mtime:
+                if (existing and existing.stat().st_mtime >= jsonl_file.stat().st_mtime
+                        and _has_current_schema(existing)):
                     skipped += 1
                     continue
 

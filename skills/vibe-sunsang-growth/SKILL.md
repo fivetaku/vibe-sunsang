@@ -107,15 +107,10 @@ Task(
 
          [v2 레벨 시스템 지침]
          - 6대 기술 차원(DECOMP/VERIFY/ORCH/FAIL/CTX/META)별로 행동 신호를 감지하세요.
-         - 유형별 동적 가중치를 적용하세요:
-           Builder: DECOMP 25%, VERIFY 25%, ORCH 15%, FAIL 15%, CTX 10%, META 10%
-           Explorer: DECOMP 15%, VERIFY 15%, ORCH 10%, FAIL 20%, CTX 20%, META 20%
-           Designer: DECOMP 20%, VERIFY 15%, ORCH 10%, FAIL 10%, CTX 25%, META 20%
-           Operator: DECOMP 15%, VERIFY 20%, ORCH 25%, FAIL 20%, CTX 10%, META 10%
-         - Fit Score 공식: F_L = SUM(w_i * S_i)
-         - 바닥 효과 보정: 첫 세션 ≥ L1.5, 3세션 + 도구 2종 ≥ L2.0
-         - 게이트 조건 확인: L3(구체성>0.5), L4(검증>0.15), L5(도구>8+전략), L6(멀티에이전트), L7(외부기여)
-         - 내부 소수점 2자리, 공식 0.5 단위 반올림
+         - 가중치·게이트 정본: ${CLAUDE_PLUGIN_ROOT}/skills/vibe-sunsang-knowledge/references/common/weights.md
+         - 축별 점수(1.0~7.0)만 판단하고, 가중 합산·반올림·바닥 보정·게이트는
+           python3 ${CLAUDE_PLUGIN_ROOT}/scripts/fit_score.py --type <유형> --scores '<JSON>' --sessions '<세션 md glob>' --signals '<비율 JSON>'
+           출력 JSON 값을 그대로 쓰세요(직접 계산 금지).
          - 6축 레이더 차트(텍스트), 레벨 카드, 게이트 상태 테이블 포함
          - 승급 시 승급 메시지 포함 (L4→L5는 '80%의 벽' 특별 이벤트)
 

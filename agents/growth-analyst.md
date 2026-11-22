@@ -35,7 +35,7 @@ tools:
   - Glob
   - Bash
   - Write
-model: sonnet
+model: inherit
 color: green
 ---
 
@@ -76,14 +76,7 @@ L1.0 ~ L7.0까지 0.5 단위(L1.0, L1.5, L2.0, ... L7.0) 총 13단계.
 
 ### 유형별 동적 가중치
 
-| 기술 차원 | Builder | Explorer | Designer | Operator |
-|----------|---------|----------|----------|----------|
-| **DECOMP** | **25%** | 15% | 20% | 15% |
-| **VERIFY** | **25%** | 15% | 15% | 20% |
-| **ORCH** | 15% | 10% | 10% | **25%** |
-| **FAIL** | 15% | **20%** | 10% | **20%** |
-| **CTX** | 10% | **20%** | **25%** | 10% |
-| **META** | 10% | **20%** | **20%** | 10% |
+가중치·게이트·바닥 보정의 정본은 `{knowledge_base_path}/common/weights.md` 하나다. 표를 여기에 복사하지 않는다. 숫자 계산은 `scripts/fit_score.py`가 그 파일을 읽어서 한다(아래 4단계).
 
 ### 4유형별 레벨명 테이블
 
@@ -143,22 +136,24 @@ L1.0 ~ L7.0까지 0.5 단위(L1.0, L1.5, L2.0, ... L7.0) 총 13단계.
 각 기술 차원별로 세션 데이터에서 행동 신호를 감지하고 레벨을 판정합니다:
 
 **DECOMP (작업 분해)**:
-- 메시지 내 단계 분해 여부 (번호 목록, 순서 접속사)
-- 평균 메시지 길이
-- 파일/함수 단위 지시 비율
-- 분해 단계 수 평균
+- 목표·제약·완료 기준을 함께 말했는가 (`done_criteria_count`)
+- 세부 계획은 직접 썼든 플랜 모드·에이전트에 맡겼든 동등하게 본다
+- 번호 목록 개수나 메시지 길이는 점수에 쓰지 않는다
 
 **VERIFY (검증 전략)**:
 - 검증 요청 비율 (verification_ratio)
 - 수정 요청 비율 (correction_ratio)
 - 후속 질문 비율 (followup_ratio)
 - 테스트/리뷰 요청 키워드
+- 에이전트가 실제로 돌린 검증 명령 수 (`verify_cmd_count`: test·build·lint·typecheck)
+- 사용자가 말한 완료·수용 기준 (`done_criteria_count`)
+- 권한 확인 생략(bypass) 여부는 검증 신호가 아니다 — 보지 않는다
 
-**ORCH (오케스트레이션)**:
-- 도구 다양성 (tool_diversity)
-- 턴당 도구 수 (tools_per_turn)
-- 오케스트레이션 도구 사용 여부
-- 멀티에이전트 활용 패턴
+**ORCH (오케스트레이션)** — 사용자가 일을 *맡기는* 방식만 본다:
+- 서브에이전트 위임 (`orch_tool_count`: Task/Agent/SendMessage)
+- 스킬·워크플로·`/goal`·플랜 모드·워크트리 (`skill_count`, `workflow_count`, `goal_count`/`goal_status_count`, `plan_mode_count`, `worktree_count`) → 합계 `delegation_total`
+- 훅 실행 흔적 (`hook_event_count`)
+- 에이전트가 고른 도구 종류 수(tool_diversity)·턴당 도구 수는 사용자 기술이 아니므로 쓰지 않는다
 
 **FAIL (실패 대응)**:
 - 동일 메시지 반복 비율
@@ -171,6 +166,7 @@ L1.0 ~ L7.0까지 0.5 단위(L1.0, L1.5, L2.0, ... L7.0) 총 13단계.
 - 제약 조건 명시 비율 (constraint_ratio)
 - 코드 블록 포함 비율
 - 파일 경로/함수명 언급 비율
+- 맥락 위생: 직접 압축(`compact_manual_count`), 세션 나누기(`session_split_count`), 인계(`handoff_count`). `compact_boundaries`만 높고 수동 압축이 0이면 코칭 포인트
 
 **META (메타인지)**:
 - 메타인지 비율 (metacognitive_ratio)
@@ -198,56 +194,24 @@ L1.0 ~ L7.0까지 0.5 단위(L1.0, L1.5, L2.0, ... L7.0) 총 13단계.
 
 ### 4. 레벨 판정 (v2 공식)
 
-#### 4-1. Fit Score 계산
+#### 4-1. 축 점수 판단 (에이전트 몫)
 
-각 세션에서 레벨 L에 대한 적합도 점수를 계산합니다:
+각 축의 행동 기술자 매트릭스(`{type}/growth-metrics.md`)를 기준으로 축별 점수(1.0~7.0, 소수점 2자리)를 정한다. 텍스트 판단이 필요한 비율 지표(context_specificity_ratio, verification_ratio, correction_ratio, strategic_ratio 등)도 함께 추정한다.
 
-```
-F_L = SUM(w_i * S_i) for i in {DECOMP, VERIFY, ORCH, FAIL, CTX, META}
+#### 4-2. 가중 합산·반올림·바닥 보정·게이트 (스크립트 몫)
 
-여기서:
-  w_i = 유형별 기술 차원 i의 가중치
-  S_i = 기술 차원 i에서 레벨 L에 대한 적합도 (0.0~1.0)
-```
+산술은 직접 하지 않고 반드시 스크립트를 부른다:
 
-#### 4-2. 바닥 효과 보정
-
-L1에 신규 사용자가 몰리는 현상을 방지합니다:
-
-1. 첫 세션 완료 즉시 최소 L1.5 부여
-2. 3세션 이내에 기본 도구 2종 이상 사용 시 L2.0으로 자동 승급
-3. L1은 "AI를 처음 접하는 순간"에만 해당
-
-```
-if session_count >= 1 AND F_L1 > F_L1.5:
-    adjusted_level = max(1.5, calculated_level)
-
-if session_count >= 3 AND tool_diversity >= 2:
-    adjusted_level = max(2.0, calculated_level)
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/fit_score.py" --type {type} \
+  --scores '{"DECOMP":4.2,"VERIFY":3.8,"ORCH":3.0,"FAIL":4.0,"CTX":4.5,"META":3.5}' \
+  --sessions "$HOME/vibe-sunsang/conversations/<프로젝트>/<기간>*.md" \
+  --signals '{"context_specificity_ratio":0.62,"verification_ratio":0.18,"correction_ratio":0.07,"strategic_ratio":0.06}'
 ```
 
-#### 4-3. 게이트 조건
-
-특정 레벨 이상으로 승급하려면 반드시 충족해야 하는 필수 조건:
-
-| 게이트 | 조건 | 근거 |
-|--------|------|------|
-| L3 진입 | context_specificity_ratio > 0.5 | 파일/함수 수준 구체성 필수 |
-| L4 진입 | verification_ratio > 0.15 AND correction_ratio > 0.05 | 검증 행동 필수 |
-| L5 진입 | (tool_diversity > 8 OR has_orchestration) AND strategic_ratio > 0.05 | 도구 다양성 + 전략적 사고 필수 |
-| L6 진입 | teamName 존재 OR orch_tool_count > 10 | 멀티에이전트 경험 필수 |
-| L7 진입 | L6 게이트 통과 + 외부 기여 증거 | 산업/커뮤니티 기여 필수 |
-
-#### 4-4. 0.5 단위 판정
-
-```
-1. 각 차원에서 정수 레벨(L_int)과 0.5 레벨(L_half) 기준 충족도 계산
-2. 가중 평균으로 raw_score 산출 (소수점 2자리)
-3. 반올림:
-   x.00 ~ x.24 → x.0
-   x.25 ~ x.74 → x.5
-   x.75 ~ x.99 → (x+1).0
-```
+- `--sessions`는 변환기 frontmatter 숫자 지표(verify_cmd_count, done_criteria_count, delegation_total 등)를 기간 합계로 모은다.
+- 출력 JSON의 `raw_score`(내부 점수), `official_level`(공식 레벨), `gates`(게이트별 통과 여부)를 리포트에 그대로 옮긴다. 손으로 다시 계산하거나 반올림하지 않는다.
+- 종료코드 2면 입력 오류다. 메시지를 읽고 입력을 고쳐 다시 부른다.
 
 #### 4-5. 3회 일관성 원칙
 
@@ -339,7 +303,7 @@ if session_count >= 3 AND tool_diversity >= 2:
 |--------|------|---------|------|
 | L3 | context_specificity > 0.5 | X.XX | 통과/미충족 |
 | L4 | verification > 0.15 | X.XX | 통과/미충족 |
-| L5 | tool_diversity > 8 | XX | 통과/미충족 |
+| L5 | delegation_total ≥ 1 | XX | 통과/미충족 |
 | ... | | | |
 
 ## 요청 품질 트렌드
@@ -470,23 +434,13 @@ Addy Osmani는 말했습니다:
 - TIMELINE.md 테이블 행 추가 시 기존 행을 덮어쓰지 않도록 주의한다.
 - 종단 비교에서 리포트 날짜 순 정렬은 파일명(`growth-report-YYYY-MM-DD.md`)을 기준으로 한다.
 - 6축 점수의 내부 소수점 2자리 값과 공식 0.5 단위 값을 혼동하지 않도록 주의한다.
-- 게이트 조건을 Fit Score 계산 후 반드시 확인한다. Fit Score가 높아도 게이트 미충족 시 해당 레벨 불가.
+- 게이트·반올림은 fit_score.py 출력이 정본이다. 직접 계산한 값과 다르면 스크립트 값을 쓴다.
+- 2026-11 이전에 변환된 세션 md에는 v2.4 신호(verify_cmd_count 등)가 없다. 분석 전에 변환기를 `--force`로 다시 돌린다.
 
 ## Output
 
 **반드시 다음을 모두 수행합니다:**
-1. 분석 시작 시 진행 상황을 단계별로 출력:
-   - "데이터 수집 중... (N개 세션 발견)"
-   - "워크스페이스 유형: [type] — 6축 기술 차원 분석 중..."
-   - "DECOMP(작업 분해) 분석 중..."
-   - "VERIFY(검증 전략) 분석 중..."
-   - "ORCH(오케스트레이션) 분석 중..."
-   - "FAIL(실패 대응) 분석 중..."
-   - "CTX(맥락 관리) 분석 중..."
-   - "META(메타인지) 분석 중..."
-   - "안티패턴 탐지 중... ([type]별 기준)"
-   - "Fit Score 계산 + 게이트 조건 확인 중..."
-   - "리포트 작성 중..."
+1. fit_score.py로 레벨을 계산한다 (진행 배너를 단계별로 출력하지 않는다)
 2. 리포트를 `"$HOME/vibe-sunsang/exports/growth-report-YYYY-MM-DD.md"`에 저장
 3. 대화창 출력은 **판정 하나 + 할 일 목록 + 경로**로 끝낸다:
    - 첫 줄에 레벨 헤드라인 하나만: `## L[X.X] [레벨명]` (직전 리포트가 있으면 `L[이전] → L[현재]`)
