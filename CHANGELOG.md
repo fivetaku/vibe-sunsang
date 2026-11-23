@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.0 — 2026-11-23
+- Codex에서도 같은 스킬로 동작: 스킬 6종에 실행 환경 블록, `references/codex.md` 추가
+- Codex rollout(`<codex 홈>/sessions`)을 같은 형식으로 변환하는 `scripts/convert_codex_rollout.py` 이식, 실행 환경에 따라 변환기 선택
+- `/vibe-sunsang` 메뉴·분기 절차를 `skills/vibe-sunsang/SKILL.md`로 옮기고 명령은 얇게 정리 (Claude Code 동작 동일)
+
 ## 2.4.0 — 2026-11-22
 - Growth rubric rewards done criteria, executed verification, /goal/Workflow/plan mode
 - Bypass ratio no longer rewarded

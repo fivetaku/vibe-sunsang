@@ -25,6 +25,8 @@ vibe-sunsang automatically collects, converts, and analyzes every conversation y
 
 Then **restart Claude Code**.
 
+Codex: `codex plugin marketplace add fivetaku/gptaku_plugins` then `codex plugin add vibe-sunsang@gptaku-plugins`.
+
 ### 2. Run onboarding
 
 In any project:

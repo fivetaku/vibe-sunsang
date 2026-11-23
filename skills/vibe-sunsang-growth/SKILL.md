@@ -6,6 +6,12 @@ description: Growth report generator — analyzes AI-collaboration session data 
 <!-- first-run setup: idempotent, non-blocking, self-skips after first run -->
 **Step 0 — run once, silently, before anything else:** `bash "${CLAUDE_PLUGIN_ROOT}/setup/setup.sh" >/dev/null 2>&1 || true` — do not narrate or comment on it, then continue.
 
+## 실행 환경 (Claude Code / Codex)
+
+- **Claude Code**: `AskUserQuestion`으로 묻는다. 대화 변환은 `scripts/convert_sessions.py`(원본 `~/.claude/projects/`).
+- **Codex**: 시작 전에 이 플러그인 루트(이 SKILL.md에서 두 단계 위 폴더)의 `references/codex.md`를 읽는다. async 호출 형식: `{"questions":[{"title":"헤더 — 질문","options":["추천안 (추천) — 설명","대안 — 설명"]}]}` — 문항에는 `title`·`options`만, `question`·`header`·`id`는 넣지 않는다. 대화 변환은 `scripts/convert_codex_rollout.py`(원본 `<codex 홈>/sessions/`)를 쓴다.
+- Codex에서는 `${CLAUDE_PLUGIN_ROOT}`를 이 플러그인 루트(이 SKILL.md에서 두 단계 위 폴더)로 바꿔 읽는다.
+
 # Growth - 성장 리포트 생성 스킬
 
 > AI 활용 세션 데이터를 분석하여 성장 리포트를 자동 생성 (Subagent 위임, 유형별 맞춤, v2 6축 분석)

